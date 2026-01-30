@@ -29,15 +29,18 @@ export function Header({ phase, progress }) {
 }
 
 export function Stepper({ phase, step }) {
+  const labels = ["Доступ", "Чат-бот", "Связь", "Готово"];
   const wrap = el("div", "stepper");
-  const labels = ["Доступ", "Сообщения", "LongPoll", "Готово"];
 
   labels.forEach((label, i) => {
     const idx = i + 1;
     const active = phase === "connecting" && step >= idx;
-    const item = el("div", `stepper__item ${active ? "is-active" : ""}`);
+    const done = phase !== "connecting" && step >= idx;
+
+    const item = el("div", `stepper__item ${active ? "is-active" : ""} ${done ? "is-done" : ""}`);
     const dot = el("div", "stepper__dot");
     const text = el("div", "stepper__text", { text: label });
+
     item.appendChild(dot);
     item.appendChild(text);
     wrap.appendChild(item);
@@ -141,22 +144,23 @@ export function SecondaryButton({ label }) {
   return el("button", "btn btn--secondary", { type: "button", text: label });
 }
 
-export function ProgressBar({ phase, step }) {
-  // step: 0..4
+export function ProgressBar({ phase, percent }) {
   const wrap = el("div", "progress");
+
   const bar = el("div", "progress__bar");
   const fill = el("div", "progress__fill");
 
-  const pct = phase === "connecting" ? Math.min(100, Math.max(6, Math.round((step / 4) * 100))) : 0;
-  fill.style.width = `${pct}%`;
-
+  fill.style.width = `${percent}%`;
   bar.appendChild(fill);
 
   const text = el("div", "progress__text", {
-    text: phase === "connecting" ? `Прогресс: ${pct}%` : " ",
+    text: phase === "connecting"
+      ? `Подключение… ${percent}%`
+      : " ",
   });
 
   wrap.appendChild(bar);
   wrap.appendChild(text);
+
   return wrap;
 }

@@ -16,9 +16,15 @@ const store = new Store({
   connected: [], // [{id, token, createdAt}]
   selectedGroupId: null,
   progress: { step: 0, label: "" },
+  progressPct: 0,
   search: "",
   error: null,
   busy: false,
+});
+
+const progressAnim = createProgressAnimator({
+  get: () => store.getState(),
+  set: (patch) => store.setState(patch),
 });
 
 export async function initApp() {
@@ -135,44 +141,47 @@ const actions = {
       phase: "connecting",
       busy: true,
       error: null,
-      progress: { step: 1, label: `Подключаю «${group.name}»` },
+      progress: {
+        step: 1,
+        label: "Начинаю подключение",
+        percent: 0,
+      },
     });
 
     try {
-      const result = await connectFlow({
+      await connectFlow({
         groupId,
         groupName: group.name,
-        onProgress: (step, label) => store.setState({ progress: { step, label } }),
+        onProgress: (step, label, targetPercent) => {
+          animateProgress(store, step, label, targetPercent);
+        },
       });
 
-      // обновим connected из storage после успешного сохранения
       const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
 
       store.setState({
         phase: "success",
         connected,
         busy: false,
-        progress: { step: 4, label: "Готово" },
+        progress: { step: 4, label: "Готово", percent: 100 },
       });
 
-      // красивый UX: небольшой успех-экран и затем кнопка/автопереход
+      window.__hubbot_toast?.("Сообщество успешно подключено", "success");
+
       setTimeout(() => {
-        // если пользователь не ушёл вручную, откроем чат
         openBotChat();
       }, CONFIG.CONNECT_REDIRECT_DELAY_MS);
 
-      window.__hubbot_toast?.(result?.message || "Подключено ✅", "success");
     } catch (e) {
-      log("connect error", e);
       store.setState({
         phase: "ready",
         busy: false,
-        error: normalizeError(e, "Не получилось подключить. Попробуйте ещё раз."),
-        progress: { step: 0, label: "" },
+        error: "Не удалось подключить сообщество. Попробуйте ещё раз.",
+        progress: { step: 0, label: "", percent: 0 },
       });
-      window.__hubbot_toast?.("Ошибка подключения", "error");
     }
-  },
+  }
+
 };
 
 function filterGroups() {
@@ -206,4 +215,30 @@ function normalizeError(err, fallback) {
   } catch {
     return fallback;
   }
+}
+
+
+function animateProgress(store, step, label, targetPercent) {
+  const state = store.getState();
+  const start = state.progress?.percent || 0;
+  const duration = 700;
+  const startTime = performance.now();
+
+  function tick(now) {
+    const t = Math.min(1, (now - startTime) / duration);
+    const eased = t * (2 - t); // easeOut
+    const value = Math.round(start + (targetPercent - start) * eased);
+
+    store.setState({
+      progress: {
+        step,
+        label,
+        percent: value,
+      },
+    });
+
+    if (t < 1) requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
 }

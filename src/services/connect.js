@@ -6,16 +6,17 @@ import {
   vkGroupsSetLongPollSettings,
 } from "../api/vk.js";
 import { storageLoadConnections, storageSaveConnections } from "./storage.js";
+import { sleep } from "../utils/async.js";
 
 /**
- * Основной flow:
- * 1) пробуем получить community token
- * 2) если нет — просим установить в сообщество, затем снова токен
- * 3) авто-настройка (messages + bots + longpoll)
- * 4) сохраняем в storage
+ * ВАЖНО:
+ * onProgress(step, label, targetPercent)
+ * targetPercent — до какого процента должен дойти прогресс
  */
 export async function connectFlow({ groupId, groupName, onProgress }) {
-  onProgress?.(1, `Запрашиваю доступ для «${groupName}»`);
+  // === ШАГ 1: доступ ===
+  onProgress?.(1, "Запрашиваю доступ к сообществу", 25);
+  await sleep(600); // визуальная пауза
 
   let token;
   try {
@@ -25,10 +26,12 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
       scope: CONFIG.COMMUNITY_SCOPE,
     });
   } catch {
-    onProgress?.(1, `Устанавливаю приложение в «${groupName}»`);
-    const newGroupId = await vkAddToCommunity(groupId);
+    onProgress?.(1, "Устанавливаю HubBot в сообщество", 25);
+    await sleep(800);
 
-    onProgress?.(1, `Запрашиваю доступ для «${groupName}»`);
+    const newGroupId = await vkAddToCommunity(groupId);
+    await sleep(600);
+
     token = await vkGetCommunityToken({
       appId: CONFIG.APP_ID,
       groupId: newGroupId,
@@ -38,24 +41,43 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
     groupId = newGroupId;
   }
 
-    onProgress?.(2, "Настраиваю чат-бота в сообществе");
+  // === ШАГ 2: чат-бот ===
+  onProgress?.(2, "Настраиваю чат-бота в сообществе", 55);
+  await sleep(700);
+
   try {
-    await vkGroupsSetSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
+    await vkGroupsSetSettings({
+      groupId,
+      token,
+      v: CONFIG.VK_API_VERSION,
+    });
   } catch {
-    // не блокируем пользователя — иногда VK отвечает нестабильно
+    // не блокируем UX
   }
 
-  onProgress?.(3, "Включаю стабильную связь для сообщений");
-  try {
-    await vkGroupsSetLongPollSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
-  } catch {
-    // тоже не блокируем, токен всё равно сохраняем
-  }
+  await sleep(600);
 
-  onProgress?.(4, "Сохраняю подключение");
+  // === ШАГ 3: связь ===
+  onProgress?.(3, "Включаю стабильную связь для сообщений", 85);
+  await sleep(800);
+
+  try {
+    await vkGroupsSetLongPollSettings({
+      groupId,
+      token,
+      v: CONFIG.VK_API_VERSION,
+    });
+  } catch {}
+
+  await sleep(600);
+
+  // === ШАГ 4: сохранение ===
+  onProgress?.(4, "Завершаю подключение", 100);
+  await sleep(700);
+
   await saveTokenToStorage(groupId, token);
 
-  return { ok: true, message: "Сообщество подключено" };
+  return { ok: true };
 }
 
 async function saveTokenToStorage(groupId, token) {
@@ -67,11 +89,5 @@ async function saveTokenToStorage(groupId, token) {
     ...list.filter((x) => x.id !== groupId),
   ];
 
-  await storageSaveConnections(CONFIG.STORAGE_KEY, next);
-}
-
-export async function disconnectGroup(groupId) {
-  const list = await storageLoadConnections(CONFIG.STORAGE_KEY);
-  const next = list.filter((x) => x.id !== groupId);
   await storageSaveConnections(CONFIG.STORAGE_KEY, next);
 }
