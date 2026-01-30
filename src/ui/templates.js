@@ -8,36 +8,41 @@ export function Header({ phase, progress }) {
   const title = el("div", "header__title", {
     text: phase === "connecting" ? "Подключение" : "Выбор сообщества",
   });
-  const subtitle = el("div", "header__subtitle", {
-    text:
-      phase === "connecting"
-        ? progress?.label || "Подготавливаю…"
-        : "Подключим HubBot за ~15 секунд — всё настроим автоматически",
-  });
+
+  const subtitleText =
+    phase === "connecting"
+      ? (progress?.label || "Подготавливаю…")
+      : "Подключим HubBot за ~15 секунд — всё настроим автоматически";
+
+  const subtitle = el("div", "header__subtitle", { text: subtitleText });
 
   top.appendChild(title);
   top.appendChild(subtitle);
 
-  const steps = Stepper({ phase, step: progress?.step || 0 });
+  const step = Number.isFinite(progress?.step) ? progress.step : 0;
+  const percent = Number.isFinite(progress?.percent) ? progress.percent : 0;
+
+  const steps = Stepper({ phase, step });
+  const bar = ProgressBar({ phase, percent });
+
   wrap.appendChild(top);
   wrap.appendChild(steps);
-
-  wrap.appendChild(ProgressBar({ phase, step: progress?.step || 0 }));
-
+  wrap.appendChild(bar);
 
   return wrap;
 }
 
 export function Stepper({ phase, step }) {
+  // Человеческие названия шагов
   const labels = ["Доступ", "Чат-бот", "Связь", "Готово"];
+
   const wrap = el("div", "stepper");
 
   labels.forEach((label, i) => {
     const idx = i + 1;
     const active = phase === "connecting" && step >= idx;
-    const done = phase !== "connecting" && step >= idx;
 
-    const item = el("div", `stepper__item ${active ? "is-active" : ""} ${done ? "is-done" : ""}`);
+    const item = el("div", `stepper__item ${active ? "is-active" : ""}`);
     const dot = el("div", "stepper__dot");
     const text = el("div", "stepper__text", { text: label });
 
@@ -45,6 +50,26 @@ export function Stepper({ phase, step }) {
     item.appendChild(text);
     wrap.appendChild(item);
   });
+
+  return wrap;
+}
+
+export function ProgressBar({ phase, percent }) {
+  const wrap = el("div", "progress");
+  const bar = el("div", "progress__bar");
+  const fill = el("div", "progress__fill");
+
+  const safePercent = Number.isFinite(percent) ? percent : 0;
+  fill.style.width = `${safePercent}%`;
+
+  bar.appendChild(fill);
+
+  const text = el("div", "progress__text", {
+    text: phase === "connecting" ? `Подключение… ${safePercent}%` : " ",
+  });
+
+  wrap.appendChild(bar);
+  wrap.appendChild(text);
 
   return wrap;
 }
@@ -88,8 +113,11 @@ export function GroupCard({ group, isConnected, isBusy }) {
 
   const right = el("div", "card__right");
 
+  // SVG бейджи вместо символов ✓ / ›
   const badge = el("div", `badge ${isConnected ? "badge--ok" : "badge--go"}`);
-  const icon = isConnected ? Icon("check", "icon icon--badge") : Icon("chevronRight", "icon icon--badge");
+  const icon = isConnected
+    ? Icon("check", "icon icon--badge")
+    : Icon("chevronRight", "icon icon--badge");
   badge.appendChild(icon);
 
   right.appendChild(badge);
@@ -142,25 +170,4 @@ export function PrimaryButton({ label }) {
 
 export function SecondaryButton({ label }) {
   return el("button", "btn btn--secondary", { type: "button", text: label });
-}
-
-export function ProgressBar({ phase, percent }) {
-  const wrap = el("div", "progress");
-
-  const bar = el("div", "progress__bar");
-  const fill = el("div", "progress__fill");
-
-  fill.style.width = `${percent}%`;
-  bar.appendChild(fill);
-
-  const text = el("div", "progress__text", {
-    text: phase === "connecting"
-      ? `Подключение… ${percent}%`
-      : " ",
-  });
-
-  wrap.appendChild(bar);
-  wrap.appendChild(text);
-
-  return wrap;
 }

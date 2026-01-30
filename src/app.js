@@ -137,11 +137,7 @@ const actions = {
       phase: "connecting",
       busy: true,
       error: null,
-      progress: {
-        step: 1,
-        label: "Начинаю подключение",
-        percent: 0,
-      },
+      progress: { step: 1, label: "Начинаю подключение…", percent: 0 },
     });
 
     try {
@@ -167,7 +163,6 @@ const actions = {
       setTimeout(() => {
         openBotChat();
       }, CONFIG.CONNECT_REDIRECT_DELAY_MS);
-
     } catch (e) {
       store.setState({
         phase: "ready",
@@ -175,6 +170,7 @@ const actions = {
         error: "Не удалось подключить сообщество. Попробуйте ещё раз.",
         progress: { step: 0, label: "", percent: 0 },
       });
+      window.__hubbot_toast?.("Ошибка подключения", "error");
     }
   }
 
@@ -216,21 +212,22 @@ function normalizeError(err, fallback) {
 
 function animateProgress(store, step, label, targetPercent) {
   const state = store.getState();
-  const start = state.progress?.percent || 0;
-  const duration = 700;
+  const start = Number.isFinite(state.progress?.percent) ? state.progress.percent : 0;
+  const target = Number.isFinite(targetPercent) ? targetPercent : start;
+
+  // если target меньше текущего — не откатываемся назад
+  const finalTarget = Math.max(start, target);
+
+  const duration = 850; // плавность/«дороговизна»
   const startTime = performance.now();
 
   function tick(now) {
     const t = Math.min(1, (now - startTime) / duration);
-    const eased = t * (2 - t); // easeOut
-    const value = Math.round(start + (targetPercent - start) * eased);
+    const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+    const value = Math.round(start + (finalTarget - start) * eased);
 
     store.setState({
-      progress: {
-        step,
-        label,
-        percent: value,
-      },
+      progress: { step, label, percent: value },
     });
 
     if (t < 1) requestAnimationFrame(tick);
