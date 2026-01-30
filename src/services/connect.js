@@ -1,7 +1,6 @@
 import { CONFIG } from "../config.js";
 import {
   vkGetCommunityToken,
-  vkAddToCommunity,
   vkGroupsSetSettings,
   vkGroupsSetLongPollSettings,
 } from "../api/vk.js";
@@ -9,77 +8,66 @@ import { storageLoadConnections, storageSaveConnections } from "./storage.js";
 import { sleep } from "../utils/async.js";
 
 /**
- * Основной flow:
- * 1) пробуем получить community token
- * 2) если нет — просим установить в сообщество, затем снова токен
- * 3) авто-настройка (messages + bots + longpoll)
- * 4) сохраняем в storage
+ * Вариант без VKWebAppAddToCommunity:
+ * - Получаем токен только через VKWebAppGetCommunityToken
+ * - Если VK просит подтверждение — покажет окно (это неизбежно)
+ * - Если пользователь отменил/не дал права — возвращаем понятную ошибку
+ *
+ * onProgress(step, label, targetPercent)
  */
 export async function connectFlow({ groupId, groupName, onProgress }) {
-  // === ШАГ 1: доступ ===
-  onProgress?.(1, "Запрашиваю доступ к сообществу", 25);
-  await sleep(600); // визуальная пауза
-
-  let token;
-  try {
-    token = await vkGetCommunityToken({
-      appId: CONFIG.APP_ID,
-      groupId,
-      scope: CONFIG.COMMUNITY_SCOPE,
-    });
-  } catch {
-    onProgress?.(1, "Устанавливаю HubBot в сообщество", 25);
-    await sleep(800);
-
-    const newGroupId = await vkAddToCommunity(groupId);
-    await sleep(600);
-
-    token = await vkGetCommunityToken({
-      appId: CONFIG.APP_ID,
-      groupId: newGroupId,
-      scope: CONFIG.COMMUNITY_SCOPE,
-    });
-
-    groupId = newGroupId;
+  // Защита от двойного старта
+  if (window.__hubbot_connect_lock) {
+    throw new Error("Подключение уже выполняется.");
   }
-
-  // === ШАГ 2: чат-бот ===
-  onProgress?.(2, "Настраиваю чат-бота в сообществе", 55);
-  await sleep(700);
+  window.__hubbot_connect_lock = true;
 
   try {
-    await vkGroupsSetSettings({
-      groupId,
-      token,
-      v: CONFIG.VK_API_VERSION,
-    });
-  } catch {
-    // не блокируем UX
+    onProgress?.(1, "Запрашиваю доступ к сообществу", 22);
+
+    // Тут НЕ делаем sleep до запроса токена — иначе человек кликает,
+    // а VK в этот момент ждёт подтверждения.
+    let token;
+    try {
+      token = await vkGetCommunityToken({
+        appId: CONFIG.APP_ID,
+        groupId,
+        scope: CONFIG.COMMUNITY_SCOPE,
+      });
+    } catch (e) {
+      // Пользователь отменил / не дал права / VK вернул ошибку
+      throw new Error(
+        "Нужно подтвердить доступ в окне ВКонтакте. Нажмите «Подключить» и разрешите доступ."
+      );
+    }
+
+    onProgress?.(2, "Настраиваю чат-бота в сообществе", 55);
+    await sleep(650);
+
+    try {
+      await vkGroupsSetSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
+    } catch {}
+
+    await sleep(500);
+
+    onProgress?.(3, "Включаю стабильную связь для сообщений", 85);
+    await sleep(700);
+
+    try {
+      await vkGroupsSetLongPollSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
+    } catch {}
+
+    await sleep(450);
+
+    onProgress?.(4, "Завершаю подключение", 100);
+    await sleep(550);
+
+    await saveTokenToStorage(groupId, token);
+
+    return { ok: true };
+  } finally {
+    window.__hubbot_connect_lock = false;
   }
-
-  await sleep(600);
-
-  // === ШАГ 3: связь ===
-  onProgress?.(3, "Включаю стабильную связь для сообщений", 85);
-  await sleep(800);
-
-  try {
-    await vkGroupsSetLongPollSettings({
-      groupId,
-      token,
-      v: CONFIG.VK_API_VERSION,
-    });
-  } catch {}
-
-  await sleep(600);
-
-  // === ШАГ 4: сохранение ===
-  onProgress?.(4, "Завершаю подключение", 100);
-  await sleep(700);
-
-  await saveTokenToStorage(groupId, token);
-
-  return { ok: true };
 }
 
 async function saveTokenToStorage(groupId, token) {
@@ -91,11 +79,5 @@ async function saveTokenToStorage(groupId, token) {
     ...list.filter((x) => x.id !== groupId),
   ];
 
-  await storageSaveConnections(CONFIG.STORAGE_KEY, next);
-}
-
-export async function disconnectGroup(groupId) {
-  const list = await storageLoadConnections(CONFIG.STORAGE_KEY);
-  const next = list.filter((x) => x.id !== groupId);
   await storageSaveConnections(CONFIG.STORAGE_KEY, next);
 }
