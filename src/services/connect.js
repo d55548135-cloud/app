@@ -7,14 +7,6 @@ import {
 import { storageLoadConnections, storageSaveConnections } from "./storage.js";
 import { sleep } from "../utils/async.js";
 
-/**
- * Вариант без VKWebAppAddToCommunity:
- * - Получаем токен только через VKWebAppGetCommunityToken
- * - Если VK просит подтверждение — покажет окно (это неизбежно)
- * - Если пользователь отменил/не дал права — возвращаем понятную ошибку
- *
- * onProgress(step, label, targetPercent)
- */
 export async function connectFlow({ groupId, groupName, onProgress }) {
   // Защита от двойного старта
   if (window.__hubbot_connect_lock) {
@@ -79,5 +71,11 @@ async function saveTokenToStorage(groupId, token) {
     ...list.filter((x) => x.id !== groupId),
   ];
 
+  await storageSaveConnections(CONFIG.STORAGE_KEY, next);
+}
+
+export async function disconnectGroup(groupId) {
+  const list = await storageLoadConnections(CONFIG.STORAGE_KEY);
+  const next = list.filter((x) => x.id !== groupId);
   await storageSaveConnections(CONFIG.STORAGE_KEY, next);
 }
