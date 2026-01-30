@@ -94,10 +94,14 @@ export function renderApp(root, state, actions) {
   const footer = el("div", "footer");
 
   const hint = el("div", "footer__hint", {
-    text: "Мы автоматически включим чат-бота и стабильную связь для сообщений.",
+    text: "Мы автоматически подключим чат-бота и обеспечим стабильную работу сообщений.",
   });
 
-  const link = el("button", "footer__link", { type: "button", text: "Как это работает? →" });
+  const link = el("button", "footer__link", {
+    type: "button",
+    text: "Как это работает? →",
+  });
+
   link.addEventListener("click", () => {
     window.open(CONFIG.TECH_ARTICLE_URL, "_blank");
   });
