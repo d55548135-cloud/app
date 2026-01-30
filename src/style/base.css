@@ -1,0 +1,31 @@
+*{ box-sizing: border-box; }
+html, body{ height:100%; }
+body{
+  margin:0;
+  font-family: -apple-system, system-ui, "SF Pro Display", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button, input{
+  font: inherit;
+}
+
+.app-root{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::selection{
+  background: rgba(63,140,255,.25);
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

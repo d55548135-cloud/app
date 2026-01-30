@@ -1,0 +1,35 @@
+/* “дорогой” shimmer для skeleton */
+.skeleton-card::after{
+  content:"";
+  position:absolute;
+  inset:-40px -60px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.14),
+    transparent
+  );
+  transform: translateX(-30%);
+  animation: shimmer 1.3s linear infinite;
+}
+
+@media (prefers-color-scheme: dark){
+  .skeleton-card::after{
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.06),
+      transparent
+    );
+  }
+}
+
+@keyframes shimmer{
+  0%{ transform: translateX(-40%); }
+  100%{ transform: translateX(40%); }
+}
+
+/* лёгкая “пружина” для карточек */
+.card{
+  will-change: transform;
+}
