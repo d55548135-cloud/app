@@ -22,10 +22,6 @@ const store = new Store({
   busy: false,
 });
 
-const progressAnim = createProgressAnimator({
-  get: () => store.getState(),
-  set: (patch) => store.setState(patch),
-});
 
 export async function initApp() {
   const root = document.getElementById("app");
