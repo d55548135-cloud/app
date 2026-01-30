@@ -336,3 +336,75 @@
 .modal-btn--primary{ background: var(--brand); color: #fff; border-color: color-mix(in srgb, var(--brand) 65%, black); }
 .modal-btn--secondary{ background: var(--surface); color: var(--text); }
 .modal-btn--danger{ background: color-mix(in srgb, var(--danger) 12%, var(--surface)); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 25%, var(--border)); }
+
+
+/* Форсим правильные цвета текста в интерактивных элементах */
+.card,
+.btn,
+.search__input,
+.modal-sheet,
+.modal-close{
+  color: var(--text);
+}
+
+/* Плейсхолдер в тёмной теме часто становится слишком тёмным */
+.search__input::placeholder{
+  color: color-mix(in srgb, var(--muted) 85%, transparent);
+}
+
+/* На всякий случай — системные стили кнопок */
+button{
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+}
+
+
+.icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color: var(--text);
+}
+
+.icon svg{
+  display:block; /* убирает “прыжки” baseline */
+}
+
+.icon--bot{
+  color: color-mix(in srgb, var(--brand) 80%, var(--text));
+}
+
+.icon--warning{
+  color: color-mix(in srgb, var(--danger) 85%, var(--text));
+}
+
+.empty__icon{
+  display:flex;
+  justify-content:center;
+  margin-bottom: 8px;
+}
+
+
+.badge{
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 800;
+  border: 1px solid var(--border);
+}
+
+.icon--badge{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width: 18px;
+  height: 18px;
+}
+
+.icon--badge svg{
+  display:block; /* фикс baseline */
+}

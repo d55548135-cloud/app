@@ -1,4 +1,5 @@
 import { el } from "./dom.js";
+import { Icon } from "./icons.js";
 
 export function Header({ phase, progress }) {
   const wrap = el("div", "header");
@@ -80,9 +81,10 @@ export function GroupCard({ group, isConnected, isBusy }) {
   left.appendChild(info);
 
   const right = el("div", "card__right");
-  const badge = el("div", `badge ${isConnected ? "badge--ok" : "badge--go"}`, {
-    text: isConnected ? "✓" : "›",
-  });
+
+  const badge = el("div", `badge ${isConnected ? "badge--ok" : "badge--go"}`);
+  const icon = isConnected ? Icon("check", "icon icon--badge") : Icon("chevronRight", "icon icon--badge");
+  badge.appendChild(icon);
 
   right.appendChild(badge);
 
@@ -108,7 +110,10 @@ export function SkeletonList({ count = 6 }) {
 
 export function EmptyState({ title, text }) {
   const wrap = el("div", "empty");
-  wrap.appendChild(el("div", "empty__icon", { text: "🤖" }));
+  const ico = el("div", "empty__icon");
+  ico.appendChild(Icon("bot", "icon icon--bot"));
+  wrap.appendChild(ico);
+
   wrap.appendChild(el("div", "empty__title", { text: title }));
   wrap.appendChild(el("div", "empty__text", { text }));
   return wrap;
@@ -116,7 +121,10 @@ export function EmptyState({ title, text }) {
 
 export function ErrorState({ title, text }) {
   const wrap = el("div", "empty empty--error");
-  wrap.appendChild(el("div", "empty__icon", { text: "⚠️" }));
+  const ico = el("div", "empty__icon");
+  ico.appendChild(Icon("warning", "icon icon--warning"));
+  wrap.appendChild(ico);
+
   wrap.appendChild(el("div", "empty__title", { text: title }));
   wrap.appendChild(el("div", "empty__text", { text }));
   return wrap;

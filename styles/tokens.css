@@ -26,9 +26,9 @@
 @media (prefers-color-scheme: dark){
   :root{
     --bg: #0E1116;
-    --surface: #151A22;
-    --text: #EAF0F7;
-    --muted: #A5B0BE;
+    --surface: #141A22;
+    --text: #F2F6FF;
+    --muted: #B2BDCD;
     --border: rgba(255,255,255,.08);
 
     --shadow: 0 14px 40px rgba(0,0,0,.55);
