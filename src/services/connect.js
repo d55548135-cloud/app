@@ -9,9 +9,11 @@ import { storageLoadConnections, storageSaveConnections } from "./storage.js";
 import { sleep } from "../utils/async.js";
 
 /**
- * ВАЖНО:
- * onProgress(step, label, targetPercent)
- * targetPercent — до какого процента должен дойти прогресс
+ * Основной flow:
+ * 1) пробуем получить community token
+ * 2) если нет — просим установить в сообщество, затем снова токен
+ * 3) авто-настройка (messages + bots + longpoll)
+ * 4) сохраняем в storage
  */
 export async function connectFlow({ groupId, groupName, onProgress }) {
   // === ШАГ 1: доступ ===
@@ -89,5 +91,11 @@ async function saveTokenToStorage(groupId, token) {
     ...list.filter((x) => x.id !== groupId),
   ];
 
+  await storageSaveConnections(CONFIG.STORAGE_KEY, next);
+}
+
+export async function disconnectGroup(groupId) {
+  const list = await storageLoadConnections(CONFIG.STORAGE_KEY);
+  const next = list.filter((x) => x.id !== groupId);
   await storageSaveConnections(CONFIG.STORAGE_KEY, next);
 }
