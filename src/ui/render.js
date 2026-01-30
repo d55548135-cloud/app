@@ -93,8 +93,6 @@ export function renderApp(root, state, actions) {
   // footer hint
   const footer = el("div", "footer");
 
-  const footer = el("div", "footer");
-
   const hint = el("div", "footer__hint", {
     text: "Мы автоматически включим чат-бота и стабильную связь для сообщений.",
   });
