@@ -28,7 +28,7 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
     onProgress?.(1, `Устанавливаю приложение в «${groupName}»`);
     const newGroupId = await vkAddToCommunity(groupId);
 
-    onProgress?.(1, `Получаю токен для «${groupName}»`);
+    onProgress?.(1, `Запрашиваю доступ для «${groupName}»`);
     token = await vkGetCommunityToken({
       appId: CONFIG.APP_ID,
       groupId: newGroupId,
@@ -38,14 +38,14 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
     groupId = newGroupId;
   }
 
-  onProgress?.(2, "Автонастройка: сообщения и возможности ботов");
+    onProgress?.(2, "Настраиваю чат-бота в сообществе");
   try {
     await vkGroupsSetSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
   } catch {
     // не блокируем пользователя — иногда VK отвечает нестабильно
   }
 
-  onProgress?.(3, "Автонастройка: LongPoll и события");
+  onProgress?.(3, "Включаю стабильную связь для сообщений");
   try {
     await vkGroupsSetLongPollSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
   } catch {

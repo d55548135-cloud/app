@@ -8,6 +8,7 @@ import {
   ErrorState,
   PrimaryButton,
 } from "./templates.js";
+import { CONFIG } from "../config.js";
 
 export function renderApp(root, state, actions) {
   clear(root);
@@ -91,12 +92,22 @@ export function renderApp(root, state, actions) {
 
   // footer hint
   const footer = el("div", "footer");
-  footer.appendChild(
-    el("div", "footer__hint", {
-      text: "Мы автоматически включим сообщения, возможности ботов и LongPoll.",
-    })
-  );
+
+  const footer = el("div", "footer");
+
+  const hint = el("div", "footer__hint", {
+    text: "Мы автоматически включим чат-бота и стабильную связь для сообщений.",
+  });
+
+  const link = el("button", "footer__link", { type: "button", text: "Как это работает? →" });
+  link.addEventListener("click", () => {
+    window.open(CONFIG.TECH_ARTICLE_URL, "_blank");
+  });
+
+  footer.appendChild(hint);
+  footer.appendChild(link);
   layout.appendChild(footer);
+
 
   root.appendChild(layout);
 }

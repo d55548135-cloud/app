@@ -2,6 +2,8 @@ export const CONFIG = {
   APP_ID: 54433980,
   BOT_GROUP_ID: 225034017,
 
+  TECH_ARTICLE_URL: "https://vk.com/@yourcommunity-your-article",
+
   STORAGE_KEY: "hub_connect_data_v2",
   MAX_CONNECTED: 20, // можно лимитировать, если нужно
 

@@ -22,6 +22,9 @@ export function Header({ phase, progress }) {
   wrap.appendChild(top);
   wrap.appendChild(steps);
 
+  wrap.appendChild(ProgressBar({ phase, step: progress?.step || 0 }));
+
+
   return wrap;
 }
 
@@ -136,4 +139,24 @@ export function PrimaryButton({ label }) {
 
 export function SecondaryButton({ label }) {
   return el("button", "btn btn--secondary", { type: "button", text: label });
+}
+
+export function ProgressBar({ phase, step }) {
+  // step: 0..4
+  const wrap = el("div", "progress");
+  const bar = el("div", "progress__bar");
+  const fill = el("div", "progress__fill");
+
+  const pct = phase === "connecting" ? Math.min(100, Math.max(6, Math.round((step / 4) * 100))) : 0;
+  fill.style.width = `${pct}%`;
+
+  bar.appendChild(fill);
+
+  const text = el("div", "progress__text", {
+    text: phase === "connecting" ? `Прогресс: ${pct}%` : " ",
+  });
+
+  wrap.appendChild(bar);
+  wrap.appendChild(text);
+  return wrap;
 }

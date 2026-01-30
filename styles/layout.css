@@ -50,3 +50,18 @@
 }
 
 .spacer{ height: 12px; }
+
+
+.footer__link{
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--brand) 85%, var(--text));
+  font-weight: 650;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+.footer__link:active{
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+}

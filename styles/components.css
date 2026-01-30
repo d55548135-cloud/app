@@ -408,3 +408,36 @@ button{
 .icon--badge svg{
   display:block; /* фикс baseline */
 }
+
+
+.progress{
+  margin-top: 10px;
+  display:flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress__bar{
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.progress__fill{
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--brand) 92%, white),
+    color-mix(in srgb, var(--brand) 60%, var(--ok))
+  );
+  transition: width 260ms var(--ease);
+}
+
+.progress__text{
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 14px;
+}
