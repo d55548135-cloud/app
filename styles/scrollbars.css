@@ -1,0 +1,67 @@
+/* =========================
+   Global scrollbars (premium)
+   Applies to: whole app (lists, pages)
+   ========================= */
+
+/* Firefox */
+:root{
+  --sb-track: transparent;
+  --sb-thumb: rgba(255,255,255,.16);
+  --sb-thumb-hover: rgba(255,255,255,.24);
+  --sb-thumb-border: rgba(0,0,0,.22);
+}
+
+/* WebKit (Chrome/Safari) */
+*::-webkit-scrollbar{
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track{
+  background: var(--sb-track);
+}
+
+*::-webkit-scrollbar-thumb{
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.22),
+    rgba(255,255,255,.10)
+  );
+  border-radius: 999px;
+
+  /* “стеклянный” отступ — выглядит богаче */
+  border: 3px solid transparent;
+  background-clip: content-box;
+
+  box-shadow: inset 0 0 0 1px var(--sb-thumb-border);
+}
+
+*::-webkit-scrollbar-thumb:hover{
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.30),
+    rgba(255,255,255,.14)
+  );
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* Firefox тонко и аккуратно */
+*{
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) var(--sb-track);
+}
+
+/* =========================
+   Optional: hide scrollbar on touch devices
+   (keeps scrolling with gestures)
+   ========================= */
+@media (hover: none) and (pointer: coarse){
+  *{
+    scrollbar-width: none; /* Firefox */
+  }
+  *::-webkit-scrollbar{
+    width: 0;
+    height: 0;
+  }
+}
