@@ -10,7 +10,7 @@
   display: grid;
   place-items: center;
 
-  padding: 18px;
+  padding: 50px;
   background: color-mix(in srgb, #000 55%, transparent);
 
   opacity: 0;
