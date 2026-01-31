@@ -1,0 +1,126 @@
+/* =========================
+   MODAL (portal) – premium
+   ========================= */
+
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: grid;
+  place-items: center; /* ✅ центр по обеим осям */
+
+  padding: 18px;
+  background: color-mix(in srgb, #000 55%, transparent);
+
+  opacity: 0;
+  transform: translateZ(0);
+  transition: opacity 180ms ease;
+
+  /* если поддерживается – мягкое стекло */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.modal-overlay.is-open{
+  opacity: 1;
+}
+
+.modal-sheet{
+  width: min(560px, 100%);
+  max-height: min(78vh, 720px);
+  overflow: hidden;
+
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: 0 20px 60px rgba(0,0,0,.45);
+
+  display: flex;
+  flex-direction: column;
+
+  transform: translateY(14px) scale(.98);
+  opacity: 0;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), opacity 220ms ease;
+}
+
+.modal-overlay.is-open .modal-sheet{
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.modal-head{
+  padding: 16px 16px 10px;
+}
+
+.modal-title{
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-size: 18px;
+  color: var(--text);
+}
+
+.modal-subtitle{
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.modal-body{
+  padding: 8px 16px 12px;
+  overflow: auto;
+}
+
+.modal-footer{
+  padding: 10px 16px 16px;
+  display: grid;
+  gap: 10px;
+}
+
+/* Кнопка закрытия */
+.modal-close{
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--text);
+
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal-close:active{
+  transform: scale(.98);
+}
+
+/* если хочешь, чтобы close был внутри sheet, то нужно position:relative у sheet */
+.modal-sheet{
+  position: relative;
+}
+
+/* ===== Mobile: сделать как bottom-sheet, но центрировано по ширине ===== */
+@media (max-width: 520px){
+  .modal-overlay{
+    place-items: end center;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .modal-sheet{
+    width: 100%;
+    max-height: 86vh;
+
+    border-radius: 22px;
+    transform: translateY(18px);
+  }
+
+  .modal-overlay.is-open .modal-sheet{
+    transform: translateY(0);
+  }
+}
