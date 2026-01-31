@@ -91,3 +91,4 @@ export function mountModal(root) {
   window.__hubbot_modal_open = (opts) => openBase(opts);
   window.__hubbot_modal_success = (opts) => openSuccess(opts);
 }
+

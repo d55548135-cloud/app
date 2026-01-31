@@ -4,7 +4,6 @@ import { Icon } from "./icons.js";
 export function buildSuccessContent(groupName) {
   const wrap = el("div", "successModal");
 
-  // “Что настроили”
   const card = el("div", "successModal__card");
   card.appendChild(el("div", "successModal__cardTitle", { text: "Что настроили автоматически" }));
 
@@ -16,8 +15,8 @@ export function buildSuccessContent(groupName) {
   card.appendChild(list);
   wrap.appendChild(card);
 
-  // Note
   const note = el("div", "successModal__note");
+
   const noteHead = el("div", "successModal__noteHead");
   noteHead.appendChild(Icon("info", "icon icon--info"));
   noteHead.appendChild(el("div", "successModal__noteTitle", { text: "Важно" }));
@@ -34,13 +33,7 @@ export function buildSuccessContent(groupName) {
 
   wrap.appendChild(note);
 
-  // маленькая строка контекста (по желанию)
-  wrap.appendChild(
-    el("div", "successModal__fineprint", {
-      text: groupName ? `Подключено: «${groupName}»` : "",
-    })
-  );
-
+  // ✅ убрали footer/fineprint — сверху и так есть название сообщества
   return wrap;
 }
 

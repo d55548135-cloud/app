@@ -48,9 +48,8 @@
 }
 
 /* HEADER */
-/* ✅ добавили padding-right под кнопку закрытия */
 .modal-head{
-  padding: 16px 56px 10px 16px; /* справа больше, чтобы не перекрывалось */
+  padding: 16px 56px 10px 16px;
 }
 
 .modal-title{
@@ -68,9 +67,34 @@
 }
 
 /* BODY / FOOTER */
+/* ✅ Скроллим только тело, без “лишнего” ощущения */
 .modal-body{
   padding: 8px 16px 12px;
+
   overflow: auto;
+  overscroll-behavior: contain;
+
+  /* тонкий аккуратный scrollbar */
+  scrollbar-width: thin;                 /* Firefox */
+  scrollbar-color: rgba(255,255,255,.18) transparent;
+}
+
+.modal-body::-webkit-scrollbar{
+  width: 8px;
+}
+.modal-body::-webkit-scrollbar-track{
+  background: transparent;
+}
+.modal-body::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.14);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.modal-body::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,.22);
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 .modal-footer{
@@ -80,7 +104,7 @@
 }
 
 /* CLOSE BUTTON */
-/* ✅ делаем компактную “иконку” вместо слова */
+/* ✅ крестик строго по центру */
 .modal-close{
   position: absolute;
   top: 12px;
@@ -102,7 +126,6 @@
   cursor: pointer;
   padding: 0;
 
-  /* убираем текст */
   font-size: 0;
   line-height: 0;
 }
@@ -110,9 +133,14 @@
 .modal-close::before{
   content: "×";
   font-size: 22px;
-  line-height: 1;
+  line-height: 22px;           /* ✅ фикс центрирования */
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;      /* ✅ центр */
   color: color-mix(in srgb, var(--muted) 92%, white);
-  transform: translateY(-1px);
+  /* ❌ убрали translateY */
 }
 
 .modal-close:hover{
@@ -142,6 +170,15 @@
   }
 
   .modal-head{
-    padding: 16px 56px 10px 16px; /* тоже оставляем место */
+    padding: 16px 56px 10px 16px;
   }
+}
+
+.modal-body{
+  overflow: auto;
+  scrollbar-width: none;
+}
+.modal-body::-webkit-scrollbar{
+  width: 0;
+  height: 0;
 }
