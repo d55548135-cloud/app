@@ -125,22 +125,10 @@
 
   cursor: pointer;
   padding: 0;
-
-  font-size: 0;
-  line-height: 0;
 }
 
-.modal-close::before{
-  content: "×";
-  font-size: 22px;
-  line-height: 22px;           /* ✅ фикс центрирования */
-  width: 22px;
-  height: 22px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;      /* ✅ центр */
-  color: color-mix(in srgb, var(--muted) 92%, white);
-  /* ❌ убрали translateY */
+.modal-close svg{
+  display: block;        /* 🔑 убирает baseline-смещение */
 }
 
 .modal-close:hover{
@@ -148,7 +136,7 @@
 }
 
 .modal-close:active{
-  transform: scale(.98);
+  transform: scale(.96);
 }
 
 /* ===== Mobile: bottom-sheet ===== */

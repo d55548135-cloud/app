@@ -1,19 +1,37 @@
 import { el, clear } from "./dom.js";
 
 export function mountModal(root) {
-  const overlay = el("div", "modal-overlay", { role: "dialog", "aria-modal": "true" });
+  const overlay = el("div", "modal-overlay", {
+    role: "dialog",
+    "aria-modal": "true",
+  });
+
   const sheet = el("div", "modal-sheet");
 
   const head = el("div", "modal-head");
   const title = el("div", "modal-title");
   const subtitle = el("div", "modal-subtitle");
+
   head.appendChild(title);
   head.appendChild(subtitle);
 
   const body = el("div", "modal-body");
   const footer = el("div", "modal-footer");
 
-  const closeBtn = el("button", "modal-close", { type: "button", "aria-label": "Закрыть" });
+  // ✅ SVG-крестик
+  const closeBtn = el("button", "modal-close", {
+    type: "button",
+    "aria-label": "Закрыть",
+  });
+
+  closeBtn.innerHTML = `
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path d="M6 6l12 12M18 6l-12 12"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"/>
+    </svg>
+  `;
 
   sheet.appendChild(head);
   sheet.appendChild(body);
@@ -87,8 +105,6 @@ export function mountModal(root) {
     requestAnimationFrame(() => overlay.classList.add("is-open"));
   }
 
-  // глобальные хелперы
   window.__hubbot_modal_open = (opts) => openBase(opts);
   window.__hubbot_modal_success = (opts) => openSuccess(opts);
 }
-
