@@ -1,6 +1,25 @@
 import { el } from "./dom.js";
 import { Icon } from "./icons.js";
 
+/**
+ * Настройка порогов для подсветки этапов.
+ * Подбери под свой UX. Сейчас:
+ * 0..29  -> шаг 1
+ * 30..59 -> шаг 2
+ * 60..89 -> шаг 3
+ * 90..100-> шаг 4
+ */
+const STEP_THRESHOLDS = [0, 30, 60, 90, 101];
+
+function percentToVisualStep(percent) {
+  const p = Number.isFinite(percent) ? percent : 0;
+  // возвращаем 1..4
+  if (p >= STEP_THRESHOLDS[3]) return 4; // >= 90
+  if (p >= STEP_THRESHOLDS[2]) return 3; // >= 60
+  if (p >= STEP_THRESHOLDS[1]) return 2; // >= 30
+  return 1;
+}
+
 export function Header({ phase, progress }) {
   const wrap = el("div", "header");
 
@@ -19,10 +38,12 @@ export function Header({ phase, progress }) {
   top.appendChild(title);
   top.appendChild(subtitle);
 
-  const step = Number.isFinite(progress?.step) ? progress.step : 0;
   const percent = Number.isFinite(progress?.percent) ? progress.percent : 0;
 
-  const steps = Stepper({ phase, step });
+  // ✅ ВАЖНО: визуальный шаг считается от процента
+  const visualStep = phase === "connecting" ? percentToVisualStep(percent) : 0;
+
+  const steps = Stepper({ phase, step: visualStep });
   const bar = ProgressBar({ phase, percent });
 
   wrap.appendChild(top);
@@ -33,13 +54,13 @@ export function Header({ phase, progress }) {
 }
 
 export function Stepper({ phase, step }) {
-  // Человеческие названия шагов
   const labels = ["Доступ", "Чат-бот", "Связь", "Готово"];
-
   const wrap = el("div", "stepper");
 
   labels.forEach((label, i) => {
     const idx = i + 1;
+
+    // ✅ active — когда “дошли” прогрессом до этого этапа
     const active = phase === "connecting" && step >= idx;
 
     const item = el("div", `stepper__item ${active ? "is-active" : ""}`);
@@ -113,7 +134,6 @@ export function GroupCard({ group, isConnected, isBusy }) {
 
   const right = el("div", "card__right");
 
-  // SVG бейджи вместо символов ✓ / ›
   const badge = el("div", `badge ${isConnected ? "badge--ok" : "badge--go"}`);
   const icon = isConnected
     ? Icon("check", "icon icon--badge")
