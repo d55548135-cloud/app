@@ -65,3 +65,11 @@
     height: 0;
   }
 }
+
+
+/* Remove scrollbar arrow buttons (where supported) */
+*::-webkit-scrollbar-button{
+  width: 0;
+  height: 0;
+  display: none;
+}

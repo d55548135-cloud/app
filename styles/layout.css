@@ -65,3 +65,45 @@
 .footer__link:active{
   background: color-mix(in srgb, var(--brand) 10%, transparent);
 }
+
+
+/* ============ Layout scrolling ============ */
+
+/* Чтобы скролл был общий (и шапка уезжала) */
+html, body{
+  height: 100%;
+}
+
+body{
+  overflow: auto; /* ✅ скролл всей страницы */
+}
+
+/* Корневой контейнер */
+.app-root, #app, #app-view{
+  min-height: 100%;
+}
+
+/* layout без внутреннего скролла */
+.layout{
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ Шапка НЕ sticky — едет вместе со скроллом */
+.header{
+  position: relative;   /* было sticky/fixed — убираем */
+  top: auto;
+  z-index: 1;
+}
+
+/* content больше не скроллится сам */
+.content{
+  flex: 0 0 auto;
+  overflow: visible;     /* было overflow:auto */
+}
+
+/* чуть воздуха внизу */
+.footer{
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
