@@ -13,7 +13,7 @@ export function mountModal(root) {
   const body = el("div", "modal-body");
   const footer = el("div", "modal-footer");
 
-  const closeBtn = el("button", "modal-close", { type: "button", text: "Закрыть" });
+  const closeBtn = el("button", "modal-close", { type: "button", "aria-label": "Закрыть" });
 
   sheet.appendChild(head);
   sheet.appendChild(body);

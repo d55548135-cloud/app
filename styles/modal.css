@@ -8,25 +8,23 @@
   z-index: 1000;
 
   display: grid;
-  place-items: center; /* ✅ центр по обеим осям */
+  place-items: center;
 
   padding: 18px;
   background: color-mix(in srgb, #000 55%, transparent);
 
   opacity: 0;
-  transform: translateZ(0);
   transition: opacity 180ms ease;
 
-  /* если поддерживается – мягкое стекло */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
-.modal-overlay.is-open{
-  opacity: 1;
-}
+.modal-overlay.is-open{ opacity: 1; }
 
 .modal-sheet{
+  position: relative;
+
   width: min(560px, 100%);
   max-height: min(78vh, 720px);
   overflow: hidden;
@@ -49,8 +47,10 @@
   opacity: 1;
 }
 
+/* HEADER */
+/* ✅ добавили padding-right под кнопку закрытия */
 .modal-head{
-  padding: 16px 16px 10px;
+  padding: 16px 56px 10px 16px; /* справа больше, чтобы не перекрывалось */
 }
 
 .modal-title{
@@ -67,6 +67,7 @@
   line-height: 1.35;
 }
 
+/* BODY / FOOTER */
 .modal-body{
   padding: 8px 16px 12px;
   overflow: auto;
@@ -78,34 +79,51 @@
   gap: 10px;
 }
 
-/* Кнопка закрытия */
+/* CLOSE BUTTON */
+/* ✅ делаем компактную “иконку” вместо слова */
 .modal-close{
   position: absolute;
   top: 12px;
   right: 12px;
 
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  color: var(--text);
+  width: 36px;
+  height: 36px;
 
-  height: 34px;
-  padding: 0 12px;
   border-radius: 12px;
+  border: 1px solid var(--border);
 
-  font-weight: 700;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: color-mix(in srgb, var(--muted) 95%, white);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
+  padding: 0;
+
+  /* убираем текст */
+  font-size: 0;
+  line-height: 0;
+}
+
+.modal-close::before{
+  content: "×";
+  font-size: 22px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--muted) 92%, white);
+  transform: translateY(-1px);
+}
+
+.modal-close:hover{
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
 }
 
 .modal-close:active{
   transform: scale(.98);
 }
 
-/* если хочешь, чтобы close был внутри sheet, то нужно position:relative у sheet */
-.modal-sheet{
-  position: relative;
-}
-
-/* ===== Mobile: сделать как bottom-sheet, но центрировано по ширине ===== */
+/* ===== Mobile: bottom-sheet ===== */
 @media (max-width: 520px){
   .modal-overlay{
     place-items: end center;
@@ -115,12 +133,15 @@
   .modal-sheet{
     width: 100%;
     max-height: 86vh;
-
     border-radius: 22px;
     transform: translateY(18px);
   }
 
   .modal-overlay.is-open .modal-sheet{
     transform: translateY(0);
+  }
+
+  .modal-head{
+    padding: 16px 56px 10px 16px; /* тоже оставляем место */
   }
 }
