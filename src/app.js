@@ -11,7 +11,7 @@ import { log } from "./utils/logger.js";
 import { buildSuccessContent } from "./ui/success_content.js";
 
 const store = new Store({
-  phase: "boot", // boot | loading | ready | connecting | error
+  phase: "boot",
   groups: [],
   filteredGroups: [],
   connected: [],
@@ -27,8 +27,6 @@ let progressEngine = null;
 export async function initApp() {
   const root = document.getElementById("app");
 
-  // ✅ ВАЖНО: теперь root больше не очищается рендером.
-  // Тут создаём постоянные порталы.
   root.innerHTML = `
     <div id="app-view"></div>
     <div id="portal-toast"></div>
@@ -117,10 +115,10 @@ const actions = {
             onClick: () => actions.openChat(),
           },
           {
-            id: "reconnect",
-            label: "Переподключить",
+            id: "ok",
+            label: "Закрыть",
             type: "secondary",
-            onClick: () => actions.startConnect(groupId),
+            onClick: () => {},
           },
         ],
       });
@@ -136,6 +134,34 @@ const actions = {
 
     const group = state.groups.find((g) => g.id === groupId);
     if (!group) return;
+
+    // ✅ ЛИМИТ: НЕ ВЫТЕСНЯЕМ, А ЗАПРЕЩАЕМ
+    const max = Number.isFinite(CONFIG.MAX_CONNECTIONS) ? CONFIG.MAX_CONNECTIONS : 2;
+    const alreadyConnected = state.connected.some((x) => x.id === groupId);
+
+    if (!alreadyConnected && state.connected.length >= max) {
+      window.__hubbot_modal_open?.({
+        title: "Достигнут лимит подключений",
+        subtitle:
+          `Можно подключить максимум ${max} сообществ(а).\n` +
+          "Чтобы подключить новое — отключите одно из текущих в чате управления Hubby.",
+        actions: [
+          {
+            id: "open_chat",
+            label: "Открыть управление Hubby",
+            type: "primary",
+            onClick: () => actions.openChat(),
+          },
+          {
+            id: "close",
+            label: "Понятно",
+            type: "secondary",
+            onClick: () => {},
+          },
+        ],
+      });
+      return;
+    }
 
     stopProgressEngine();
     progressEngine = createProgressEngine((patch) => store.setState(patch));
@@ -162,7 +188,6 @@ const actions = {
       progressEngine.finishTo100(() => {
         stopProgressEngine();
 
-        // возвращаемся к обычному экрану, без “success page”
         store.setState({
           phase: "ready",
           connected,
@@ -171,7 +196,6 @@ const actions = {
           error: null,
         });
 
-        // ✅ success modal
         const contentNode = buildSuccessContent(group.name);
 
         window.__hubbot_modal_success?.({
@@ -212,25 +236,20 @@ const actions = {
 function filterGroups() {
   const { groups, search } = store.getState();
   const q = (search || "").trim().toLowerCase();
-
   if (!q) {
     store.setState({ filteredGroups: groups });
     return;
   }
-
-  const filtered = groups.filter((g) => (g.name || "").toLowerCase().includes(q));
-  store.setState({ filteredGroups: filtered });
+  store.setState({
+    filteredGroups: groups.filter((g) => (g.name || "").toLowerCase().includes(q)),
+  });
 }
 
 function normalizeError(err, fallback) {
   if (!err) return fallback;
   if (typeof err === "string") return err;
   if (err?.message) return err.message;
-  try {
-    return JSON.stringify(err);
-  } catch {
-    return fallback;
-  }
+  try { return JSON.stringify(err); } catch { return fallback; }
 }
 
 function stopProgressEngine() {
@@ -240,17 +259,23 @@ function stopProgressEngine() {
   }
 }
 
+/**
+ * ✅ Прогресс: быстрее и без резкого “взлёта” на финале
+ * - ускорили инерцию
+ * - подняли maxBeforeFinish ближе к 100
+ * - сделали финиш дольше и мягче
+ */
 function createProgressEngine(emit) {
   let raf = null;
   let running = false;
 
   let percent = 0;
-  let cap = 18;
+  let cap = 25;
   let step = 1;
   let label = "Начинаю…";
 
-  const speed = 12;
-  const maxBeforeFinish = 92;
+  const speed = 22;          // было 12 → стало бодрее
+  const maxBeforeFinish = 97; // было 92 → теперь меньше “скачок” на финале
 
   let last = performance.now();
 
@@ -263,7 +288,8 @@ function createProgressEngine(emit) {
 
     if (percent < target) {
       const distance = target - percent;
-      const ease = Math.max(0.14, Math.min(1, distance / 18));
+      // чем ближе к target, тем медленнее – но не слишком
+      const ease = Math.max(0.22, Math.min(1, distance / 22));
       percent += speed * ease * dt;
       percent = Math.min(percent, target);
     }
@@ -287,18 +313,19 @@ function createProgressEngine(emit) {
       step = nextStep;
       label = nextLabel;
       if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap);
-      else cap = Math.max(cap, 20);
+      else cap = Math.max(cap, 30);
     },
     finishTo100(onDone) {
       this.stop();
 
       const start = percent;
-      const duration = 900;
+      const duration = 1400; // было 900 → финал мягче и без “взлёта”
       const startTime = performance.now();
 
       const finishTick = (now) => {
         const t = Math.min(1, (now - startTime) / duration);
-        const eased = 1 - Math.pow(1 - t, 3);
+        // плавная кривая без резкого ускорения
+        const eased = 1 - Math.pow(1 - t, 4);
         const value = start + (100 - start) * eased;
 
         emit({ progress: { step: 4, label: "Готово", percent: Math.round(value) } });

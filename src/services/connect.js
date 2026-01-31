@@ -14,9 +14,10 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
   window.__hubbot_connect_lock = true;
 
   try {
-    onProgress?.(1, `Запрашиваю доступ к «${groupName}»`, 30);
+    // Шаг 1: подтверждение прав (может быть долгим)
+    // ✅ Подняли потолок, чтобы прогресс жил, пока человек подтверждает
+    onProgress?.(1, `Запрашиваю доступ к «${groupName}»`, 55);
 
-    // Не делаем sleep до токена — чтобы не провоцировать клики во время системного окна VK
     let token;
     try {
       token = await vkGetCommunityToken({
@@ -28,30 +29,32 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
       throw new Error("Подтвердите доступ в окне ВКонтакте и попробуйте ещё раз.");
     }
 
-    // Дальше можно замедлять красиво
-    await sleep(400);
+    // Дальше можно “чуть-чуть” замедлять — но без тормозов
+    await sleep(250);
 
-    onProgress?.(2, "Настраиваю чат-бота в сообществе", 62);
-    await sleep(550);
-
+    // Шаг 2
+    onProgress?.(2, "Настраиваю чат-бота в сообществе", 78);
+    await sleep(350);
     try {
       await vkGroupsSetSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
     } catch {}
 
-    await sleep(450);
+    await sleep(260);
 
-    onProgress?.(3, "Включаю стабильную связь для сообщений", 90);
-    await sleep(600);
-
+    // Шаг 3
+    onProgress?.(3, "Включаю стабильную связь для сообщений", 94);
+    await sleep(350);
     try {
       await vkGroupsSetLongPollSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
     } catch {}
 
-    await sleep(450);
+    await sleep(200);
 
-    onProgress?.(4, "Завершаю подключение", 96);
-    await sleep(350);
+    // Шаг 4 — почти финиш, чтобы не было скачка
+    onProgress?.(4, "Завершаю подключение", 97);
+    await sleep(200);
 
+    // ✅ Тут мы НЕ вытесняем старые записи — лимит контролируем в app.js
     await saveTokenToStorage(groupId, token);
 
     return { ok: true };
@@ -64,10 +67,11 @@ async function saveTokenToStorage(groupId, token) {
   const list = await storageLoadConnections(CONFIG.STORAGE_KEY);
   const now = Date.now();
 
-  const next = [
-    { id: groupId, token, createdAt: now },
-    ...list.filter((x) => x.id !== groupId),
-  ];
+  // обновляем, если уже есть — иначе добавляем
+  const exists = list.some((x) => x.id === groupId);
+  const next = exists
+    ? list.map((x) => (x.id === groupId ? { ...x, token, updatedAt: now } : x))
+    : [{ id: groupId, token, createdAt: now }, ...list];
 
   await storageSaveConnections(CONFIG.STORAGE_KEY, next);
 }
