@@ -442,74 +442,79 @@ button{
   min-height: 14px;
 }
 
-/* Success screen */
-.success{
-  padding: 10px 0 6px;
-  display:flex;
-  flex-direction: column;
-  gap: 12px;
+/* ===== Success modal content ===== */
+.modal-sheet--success .modal-head{
+  padding: 10px 10px 6px;
 }
 
-.success__title{
+.modal-sheet--success .modal-title{
   font-weight: 900;
   letter-spacing: -0.02em;
-  font-size: 22px;
+  font-size: 18px;
 }
 
-.success__subtitle{
-  color: var(--muted);
+.modal-sheet--success .modal-subtitle{
+  margin-top: 6px;
   font-size: 13px;
+  color: var(--muted);
   line-height: 1.35;
 }
 
-.success__card{
+.modal-footer{
+  display:grid;
+  gap: 10px;
+  padding: 6px 6px 10px;
+}
+
+.successModal{
+  display:flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 6px 0;
+}
+
+.successModal__card{
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
   padding: 14px;
 }
 
-.success__cardTitle{
-  font-weight: 800;
+.successModal__cardTitle{
+  font-weight: 850;
   letter-spacing: -0.01em;
   margin-bottom: 10px;
 }
 
-.success__list{
+.successModal__list{
   display:flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.success__item{
+.successModal__item{
   display:flex;
-  align-items:flex-start;
+  align-items:center; /* ключ: ровное выравнивание по центру */
   gap: 10px;
 }
 
-.success__dot{
-  width: 22px;
-  height: 22px;
-  border-radius: 10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background: color-mix(in srgb, var(--ok) 12%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--ok) 30%, var(--border));
-  color: var(--ok);
-  font-weight: 900;
-  flex: 0 0 auto;
-  margin-top: 1px;
-}
-
-.success__itemText{
-  color: var(--text);
+.successModal__itemText{
   font-size: 13px;
   line-height: 1.35;
+  color: var(--text);
 }
 
-.success__note{
+.icon--circleCheck{
+  color: var(--ok);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex: 0 0 auto;
+}
+.icon--circleCheck svg{ display:block; }
+
+.successModal__note{
   border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--border));
   background: color-mix(in srgb, var(--brand) 8%, var(--surface));
   border-radius: var(--radius-xl);
@@ -517,14 +522,44 @@ button{
   box-shadow: var(--shadow-soft);
 }
 
-.success__noteTitle{
-  font-weight: 850;
-  letter-spacing: -0.01em;
+.successModal__noteHead{
+  display:flex;
+  align-items:center;
+  gap: 8px;
   margin-bottom: 6px;
 }
 
-.success__noteText{
+.icon--info{
+  color: color-mix(in srgb, var(--brand) 85%, var(--text));
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex: 0 0 auto;
+}
+.icon--info svg{ display:block; }
+
+.successModal__noteTitle{
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.successModal__noteText{
   color: var(--muted);
   font-size: 13px;
   line-height: 1.35;
+}
+
+.successModal__fineprint{
+  font-size: 12px;
+  color: color-mix(in srgb, var(--muted) 80%, transparent);
+  padding: 0 4px;
+}
+
+/* Более "богатое" затемнение и стекло */
+.modal-overlay{
+  backdrop-filter: blur(8px);
+}
+
+.modal-sheet{
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
 }

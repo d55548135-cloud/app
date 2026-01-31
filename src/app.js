@@ -8,23 +8,18 @@ import { mountToast } from "./ui/toast.js";
 import { mountModal } from "./ui/modal.js";
 import { debounce } from "./utils/debounce.js";
 import { log } from "./utils/logger.js";
+import { buildSuccessContent } from "./ui/success_content.js";
 
 const store = new Store({
-  phase: "boot", // boot | loading | ready | connecting | success | error
+  phase: "boot", // boot | loading | ready | connecting | error
   groups: [],
   filteredGroups: [],
-  connected: [], // [{id, token, createdAt}]
+  connected: [],
   selectedGroupId: null,
   progress: { step: 0, label: "", percent: 0 },
   search: "",
   error: null,
   busy: false,
-
-  // success context
-  success: {
-    groupId: null,
-    groupName: "",
-  },
 });
 
 let progressEngine = null;
@@ -87,19 +82,6 @@ const actions = {
     }
   },
 
-  backToGroups() {
-    stopProgressEngine();
-    const { groups } = store.getState();
-    store.setState({
-      phase: "ready",
-      busy: false,
-      error: null,
-      progress: { step: 0, label: "", percent: 0 },
-      success: { groupId: null, groupName: "" },
-      filteredGroups: groups,
-    });
-  },
-
   async onGroupClick(groupId) {
     const state = store.getState();
     if (state.busy) return;
@@ -152,7 +134,6 @@ const actions = {
       busy: true,
       error: null,
       progress: { step: 1, label: "Начинаю подключение…", percent: 0 },
-      success: { groupId: null, groupName: "" },
     });
 
     try {
@@ -166,17 +147,43 @@ const actions = {
 
       const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
 
-      // Плавный финиш прогресса до 100, затем показываем Success Screen
       progressEngine.finishTo100(() => {
+        // ВАЖНО: не переходим на отдельный success-экран.
+        // Возвращаемся в "ready" и показываем success-модалку поверх.
+        stopProgressEngine();
+
         store.setState({
-          phase: "success",
+          phase: "ready",
           connected,
           busy: false,
-          progress: { step: 4, label: "Готово", percent: 100 },
-          success: { groupId, groupName: group.name },
+          progress: { step: 0, label: "", percent: 0 },
+          error: null,
         });
 
-        window.__hubbot_toast?.("Сообщество подключено ✅", "success");
+        // Открываем богатую success-модалку
+        const contentNode = buildSuccessContent(group.name);
+
+        window.__hubbot_modal_success?.({
+          title: "Успешно подключено",
+          subtitle: `Сообщество «${group.name}» готово к работе.`,
+          contentNode,
+          actions: [
+            {
+              id: "open_chat",
+              label: "Перейти в чат управления Hubby",
+              type: "primary",
+              onClick: () => actions.openChat(),
+            },
+            {
+              id: "close",
+              label: "Остаться в списке сообществ",
+              type: "secondary",
+              onClick: () => {},
+            },
+          ],
+        });
+
+        window.__hubbot_toast?.("Подключение завершено ✅", "success");
       });
     } catch (e) {
       stopProgressEngine();
@@ -222,12 +229,6 @@ function stopProgressEngine() {
   }
 }
 
-/**
- * Премиум-прогресс:
- * - плавная “инерция”
- * - шаги поднимают потолок (cap)
- * - финал: красивое доведение до 100%
- */
 function createProgressEngine(emit) {
   let raf = null;
   let running = false;
@@ -237,7 +238,7 @@ function createProgressEngine(emit) {
   let step = 1;
   let label = "Начинаю…";
 
-  const speed = 12;        // сделано чуть спокойнее, меньше “подёргиваний”
+  const speed = 12;
   const maxBeforeFinish = 92;
 
   let last = performance.now();
@@ -257,11 +258,7 @@ function createProgressEngine(emit) {
     }
 
     emit({
-      progress: {
-        step,
-        label,
-        percent: Math.round(percent),
-      },
+      progress: { step, label, percent: Math.round(percent) },
     });
 
     raf = requestAnimationFrame(loop);
@@ -281,7 +278,6 @@ function createProgressEngine(emit) {
     setStep(nextStep, nextLabel, nextCap) {
       step = nextStep;
       label = nextLabel;
-
       if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap);
       else cap = Math.max(cap, 20);
     },
@@ -298,11 +294,7 @@ function createProgressEngine(emit) {
         const value = start + (100 - start) * eased;
 
         emit({
-          progress: {
-            step: 4,
-            label: "Готово",
-            percent: Math.round(value),
-          },
+          progress: { step: 4, label: "Готово", percent: Math.round(value) },
         });
 
         if (t < 1) requestAnimationFrame(finishTick);
