@@ -4,8 +4,8 @@ export const CONFIG = {
 
   TECH_ARTICLE_URL: "https://vk.com/@yourcommunity-your-article",
 
-  STORAGE_KEY: "hub_connect_data_v2",
-  MAX_CONNECTED: 20, // можно лимитировать, если нужно
+  STORAGE_KEY: "hub_connect_data",
+  MAX_CONNECTED: 2, // можно лимитировать, если нужно
 
   VK_API_VERSION: "5.131",
 
