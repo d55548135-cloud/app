@@ -26,13 +26,24 @@ let progressEngine = null;
 
 export async function initApp() {
   const root = document.getElementById("app");
-  root.innerHTML = "";
 
-  mountToast(root);
-  mountModal(root);
+  // ✅ ВАЖНО: теперь root больше не очищается рендером.
+  // Тут создаём постоянные порталы.
+  root.innerHTML = `
+    <div id="app-view"></div>
+    <div id="portal-toast"></div>
+    <div id="portal-modal"></div>
+  `;
 
-  store.subscribe(() => renderApp(root, store.getState(), actions));
-  renderApp(root, store.getState(), actions);
+  const viewRoot = document.getElementById("app-view");
+  const toastRoot = document.getElementById("portal-toast");
+  const modalRoot = document.getElementById("portal-modal");
+
+  mountToast(toastRoot);
+  mountModal(modalRoot);
+
+  store.subscribe(() => renderApp(viewRoot, store.getState(), actions));
+  renderApp(viewRoot, store.getState(), actions);
 
   store.setState({ phase: "loading", error: null });
 
@@ -51,9 +62,10 @@ export async function initApp() {
       filteredGroups: groups,
       error: null,
       busy: false,
+      progress: { step: 0, label: "", percent: 0 },
     });
 
-    document.getElementById("app")?.setAttribute("aria-busy", "false");
+    root.setAttribute("aria-busy", "false");
   } catch (e) {
     log("init error", e);
     store.setState({
@@ -61,7 +73,7 @@ export async function initApp() {
       error: normalizeError(e, "Не удалось загрузить группы. Проверьте доступ и повторите."),
       busy: false,
     });
-    document.getElementById("app")?.setAttribute("aria-busy", "false");
+    root.setAttribute("aria-busy", "false");
   }
 }
 
@@ -148,10 +160,9 @@ const actions = {
       const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
 
       progressEngine.finishTo100(() => {
-        // ВАЖНО: не переходим на отдельный success-экран.
-        // Возвращаемся в "ready" и показываем success-модалку поверх.
         stopProgressEngine();
 
+        // возвращаемся к обычному экрану, без “success page”
         store.setState({
           phase: "ready",
           connected,
@@ -160,7 +171,7 @@ const actions = {
           error: null,
         });
 
-        // Открываем богатую success-модалку
+        // ✅ success modal
         const contentNode = buildSuccessContent(group.name);
 
         window.__hubbot_modal_success?.({
@@ -257,10 +268,7 @@ function createProgressEngine(emit) {
       percent = Math.min(percent, target);
     }
 
-    emit({
-      progress: { step, label, percent: Math.round(percent) },
-    });
-
+    emit({ progress: { step, label, percent: Math.round(percent) } });
     raf = requestAnimationFrame(loop);
   }
 
@@ -293,9 +301,7 @@ function createProgressEngine(emit) {
         const eased = 1 - Math.pow(1 - t, 3);
         const value = start + (100 - start) * eased;
 
-        emit({
-          progress: { step: 4, label: "Готово", percent: Math.round(value) },
-        });
+        emit({ progress: { step: 4, label: "Готово", percent: Math.round(value) } });
 
         if (t < 1) requestAnimationFrame(finishTick);
         else onDone?.();
