@@ -2,7 +2,7 @@ import { CONFIG } from "./config.js";
 import { vkInit, vkGetUserToken, vkGroupsGetAdmin } from "./api/vk.js";
 import { Store } from "./state/store.js";
 import { storageLoadConnections } from "./services/storage.js";
-import { connectFlow, disconnectGroup } from "./services/connect.js";
+import { connectFlow } from "./services/connect.js";
 import { renderApp } from "./ui/render.js";
 import { mountToast } from "./ui/toast.js";
 import { mountModal } from "./ui/modal.js";
@@ -15,13 +15,19 @@ const store = new Store({
   filteredGroups: [],
   connected: [], // [{id, token, createdAt}]
   selectedGroupId: null,
-  progress: { step: 0, label: "" },
-  progressPct: 0,
+  progress: { step: 0, label: "", percent: 0 },
   search: "",
   error: null,
   busy: false,
+
+  // success context
+  success: {
+    groupId: null,
+    groupName: "",
+  },
 });
 
+let progressEngine = null;
 
 export async function initApp() {
   const root = document.getElementById("app");
@@ -41,15 +47,15 @@ export async function initApp() {
     const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
     store.setState({ connected });
 
-    // получаем user token -> список админских групп
     const userToken = await vkGetUserToken(CONFIG.APP_ID, CONFIG.USER_SCOPE);
-
     const groups = await vkGroupsGetAdmin(userToken, CONFIG.VK_API_VERSION);
+
     store.setState({
       phase: "ready",
       groups,
       filteredGroups: groups,
       error: null,
+      busy: false,
     });
 
     document.getElementById("app")?.setAttribute("aria-busy", "false");
@@ -67,15 +73,32 @@ export async function initApp() {
 const actions = {
   retry: () => initApp(),
 
-  setSearch: (value) => {
-    store.setState({ search: value });
-    filterGroups();
-  },
-
   setSearchDebounced: debounce((value) => {
     store.setState({ search: value });
     filterGroups();
   }, 120),
+
+  openChat() {
+    const link = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
+    try {
+      top.location.href = link;
+    } catch {
+      window.open(link, "_self");
+    }
+  },
+
+  backToGroups() {
+    stopProgressEngine();
+    const { groups } = store.getState();
+    store.setState({
+      phase: "ready",
+      busy: false,
+      error: null,
+      progress: { step: 0, label: "", percent: 0 },
+      success: { groupId: null, groupName: "" },
+      filteredGroups: groups,
+    });
+  },
 
   async onGroupClick(groupId) {
     const state = store.getState();
@@ -89,16 +112,15 @@ const actions = {
     const isConnected = state.connected.some((x) => x.id === groupId);
 
     if (isConnected) {
-      // откроем bottom sheet с действиями
       window.__hubbot_modal_open?.({
         title: group.name,
         subtitle: "Это сообщество уже подключено",
         actions: [
           {
             id: "open_chat",
-            label: "Открыть чат с HubBot",
+            label: "Перейти в чат управления Hubby",
             type: "primary",
-            onClick: () => openBotChat(),
+            onClick: () => actions.openChat(),
           },
           {
             id: "reconnect",
@@ -106,23 +128,11 @@ const actions = {
             type: "secondary",
             onClick: () => actions.startConnect(groupId),
           },
-          {
-            id: "disconnect",
-            label: "Отключить",
-            type: "danger",
-            onClick: async () => {
-              await disconnectGroup(groupId);
-              const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
-              store.setState({ connected });
-              window.__hubbot_toast?.("Отключено", "success");
-            },
-          },
         ],
       });
       return;
     }
 
-    // если не подключено — сразу начинаем процесс
     await actions.startConnect(groupId);
   },
 
@@ -133,47 +143,52 @@ const actions = {
     const group = state.groups.find((g) => g.id === groupId);
     if (!group) return;
 
+    stopProgressEngine();
+    progressEngine = createProgressEngine((patch) => store.setState(patch));
+    progressEngine.start();
+
     store.setState({
       phase: "connecting",
       busy: true,
       error: null,
       progress: { step: 1, label: "Начинаю подключение…", percent: 0 },
+      success: { groupId: null, groupName: "" },
     });
 
     try {
       await connectFlow({
         groupId,
         groupName: group.name,
-        onProgress: (step, label, targetPercent) => {
-          animateProgress(store, step, label, targetPercent);
+        onProgress: (step, label, capPercent) => {
+          progressEngine.setStep(step, label, capPercent);
         },
       });
 
       const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
 
-      store.setState({
-        phase: "success",
-        connected,
-        busy: false,
-        progress: { step: 4, label: "Готово", percent: 100 },
+      // Плавный финиш прогресса до 100, затем показываем Success Screen
+      progressEngine.finishTo100(() => {
+        store.setState({
+          phase: "success",
+          connected,
+          busy: false,
+          progress: { step: 4, label: "Готово", percent: 100 },
+          success: { groupId, groupName: group.name },
+        });
+
+        window.__hubbot_toast?.("Сообщество подключено ✅", "success");
       });
-
-      window.__hubbot_toast?.("Сообщество успешно подключено", "success");
-
-      setTimeout(() => {
-        openBotChat();
-      }, CONFIG.CONNECT_REDIRECT_DELAY_MS);
     } catch (e) {
+      stopProgressEngine();
       store.setState({
         phase: "ready",
         busy: false,
-        error: "Не удалось подключить сообщество. Попробуйте ещё раз.",
+        error: normalizeError(e, "Не удалось подключить сообщество. Попробуйте ещё раз."),
         progress: { step: 0, label: "", percent: 0 },
       });
       window.__hubbot_toast?.("Ошибка подключения", "error");
     }
-  }
-
+  },
 };
 
 function filterGroups() {
@@ -189,15 +204,6 @@ function filterGroups() {
   store.setState({ filteredGroups: filtered });
 }
 
-function openBotChat() {
-  const link = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
-  try {
-    top.location.href = link;
-  } catch {
-    window.open(link, "_self");
-  }
-}
-
 function normalizeError(err, fallback) {
   if (!err) return fallback;
   if (typeof err === "string") return err;
@@ -209,29 +215,101 @@ function normalizeError(err, fallback) {
   }
 }
 
+function stopProgressEngine() {
+  if (progressEngine) {
+    progressEngine.stop();
+    progressEngine = null;
+  }
+}
 
-function animateProgress(store, step, label, targetPercent) {
-  const state = store.getState();
-  const start = Number.isFinite(state.progress?.percent) ? state.progress.percent : 0;
-  const target = Number.isFinite(targetPercent) ? targetPercent : start;
+/**
+ * Премиум-прогресс:
+ * - плавная “инерция”
+ * - шаги поднимают потолок (cap)
+ * - финал: красивое доведение до 100%
+ */
+function createProgressEngine(emit) {
+  let raf = null;
+  let running = false;
 
-  // если target меньше текущего — не откатываемся назад
-  const finalTarget = Math.max(start, target);
+  let percent = 0;
+  let cap = 18;
+  let step = 1;
+  let label = "Начинаю…";
 
-  const duration = 850; // плавность/«дороговизна»
-  const startTime = performance.now();
+  const speed = 12;        // сделано чуть спокойнее, меньше “подёргиваний”
+  const maxBeforeFinish = 92;
 
-  function tick(now) {
-    const t = Math.min(1, (now - startTime) / duration);
-    const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
-    const value = Math.round(start + (finalTarget - start) * eased);
+  let last = performance.now();
 
-    store.setState({
-      progress: { step, label, percent: value },
+  function loop(now) {
+    if (!running) return;
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+
+    const target = Math.min(cap, maxBeforeFinish);
+
+    if (percent < target) {
+      const distance = target - percent;
+      const ease = Math.max(0.14, Math.min(1, distance / 18));
+      percent += speed * ease * dt;
+      percent = Math.min(percent, target);
+    }
+
+    emit({
+      progress: {
+        step,
+        label,
+        percent: Math.round(percent),
+      },
     });
 
-    if (t < 1) requestAnimationFrame(tick);
+    raf = requestAnimationFrame(loop);
   }
 
-  requestAnimationFrame(tick);
+  return {
+    start() {
+      running = true;
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    },
+    stop() {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+    },
+    setStep(nextStep, nextLabel, nextCap) {
+      step = nextStep;
+      label = nextLabel;
+
+      if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap);
+      else cap = Math.max(cap, 20);
+    },
+    finishTo100(onDone) {
+      this.stop();
+
+      const start = percent;
+      const duration = 900;
+      const startTime = performance.now();
+
+      const finishTick = (now) => {
+        const t = Math.min(1, (now - startTime) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        const value = start + (100 - start) * eased;
+
+        emit({
+          progress: {
+            step: 4,
+            label: "Готово",
+            percent: Math.round(value),
+          },
+        });
+
+        if (t < 1) requestAnimationFrame(finishTick);
+        else onDone?.();
+      };
+
+      requestAnimationFrame(finishTick);
+    },
+  };
 }

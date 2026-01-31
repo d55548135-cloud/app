@@ -8,17 +8,15 @@ import { storageLoadConnections, storageSaveConnections } from "./storage.js";
 import { sleep } from "../utils/async.js";
 
 export async function connectFlow({ groupId, groupName, onProgress }) {
-  // Защита от двойного старта
   if (window.__hubbot_connect_lock) {
     throw new Error("Подключение уже выполняется.");
   }
   window.__hubbot_connect_lock = true;
 
   try {
-    onProgress?.(1, "Запрашиваю доступ к сообществу", 22);
+    onProgress?.(1, `Запрашиваю доступ к «${groupName}»`, 30);
 
-    // Тут НЕ делаем sleep до запроса токена — иначе человек кликает,
-    // а VK в этот момент ждёт подтверждения.
+    // Не делаем sleep до токена — чтобы не провоцировать клики во время системного окна VK
     let token;
     try {
       token = await vkGetCommunityToken({
@@ -26,24 +24,24 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
         groupId,
         scope: CONFIG.COMMUNITY_SCOPE,
       });
-    } catch (e) {
-      // Пользователь отменил / не дал права / VK вернул ошибку
-      throw new Error(
-        "Нужно подтвердить доступ в окне ВКонтакте. Нажмите «Подключить» и разрешите доступ."
-      );
+    } catch {
+      throw new Error("Подтвердите доступ в окне ВКонтакте и попробуйте ещё раз.");
     }
 
-    onProgress?.(2, "Настраиваю чат-бота в сообществе", 55);
-    await sleep(650);
+    // Дальше можно замедлять красиво
+    await sleep(400);
+
+    onProgress?.(2, "Настраиваю чат-бота в сообществе", 62);
+    await sleep(550);
 
     try {
       await vkGroupsSetSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
     } catch {}
 
-    await sleep(500);
+    await sleep(450);
 
-    onProgress?.(3, "Включаю стабильную связь для сообщений", 85);
-    await sleep(700);
+    onProgress?.(3, "Включаю стабильную связь для сообщений", 90);
+    await sleep(600);
 
     try {
       await vkGroupsSetLongPollSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
@@ -51,8 +49,8 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
 
     await sleep(450);
 
-    onProgress?.(4, "Завершаю подключение", 100);
-    await sleep(550);
+    onProgress?.(4, "Завершаю подключение", 96);
+    await sleep(350);
 
     await saveTokenToStorage(groupId, token);
 

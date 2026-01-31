@@ -7,32 +7,24 @@ import {
   EmptyState,
   ErrorState,
   PrimaryButton,
+  SecondaryButton,
 } from "./templates.js";
-import { CONFIG } from "../config.js";
 
 export function renderApp(root, state, actions) {
   clear(root);
 
   const layout = el("div", "layout");
-
   layout.appendChild(Header({ phase: state.phase, progress: state.progress }));
 
   const content = el("div", "content");
   const section = el("div", "section");
 
-  // Search
-  if (state.phase === "ready" || state.phase === "connecting" || state.phase === "success") {
-    const { wrap, input } = SearchBar({ value: state.search });
-
-    on(input, "input", (e) => actions.setSearchDebounced(e.target.value));
-    section.appendChild(wrap);
-  }
-
-  // Body
+  // ========== LOADING ==========
   if (state.phase === "loading" || state.phase === "boot") {
     section.appendChild(SkeletonList({ count: 7 }));
   }
 
+  // ========== ERROR ==========
   if (state.phase === "error") {
     const err = ErrorState({
       title: "Не удалось загрузить",
@@ -46,7 +38,18 @@ export function renderApp(root, state, actions) {
     section.appendChild(btn);
   }
 
-  if (state.phase === "ready" || state.phase === "connecting" || state.phase === "success") {
+  // ========== SUCCESS SCREEN ==========
+  if (state.phase === "success") {
+    section.appendChild(SuccessScreen(state, actions));
+  }
+
+  // ========== READY / CONNECTING ==========
+  if (state.phase === "ready" || state.phase === "connecting") {
+    // Search
+    const { wrap, input } = SearchBar({ value: state.search });
+    on(input, "input", (e) => actions.setSearchDebounced(e.target.value));
+    section.appendChild(wrap);
+
     const groups = state.filteredGroups || [];
 
     if (!state.groups?.length) {
@@ -80,36 +83,90 @@ export function renderApp(root, state, actions) {
 
       section.appendChild(list);
     }
-
-    if (state.error) {
-      // мягкое сообщение без “краша”
-      window.__hubbot_toast?.(state.error, "error");
-    }
   }
 
   content.appendChild(section);
   layout.appendChild(content);
 
-  // footer hint
-  const footer = el("div", "footer");
-
-  const hint = el("div", "footer__hint", {
-    text: "Мы автоматически подключим чат-бота и обеспечим стабильную работу сообщений.",
-  });
-
-  const link = el("button", "footer__link", {
-    type: "button",
-    text: "Как это работает? →",
-  });
-
-  link.addEventListener("click", () => {
-    window.open(CONFIG.TECH_ARTICLE_URL, "_blank");
-  });
-
-  footer.appendChild(hint);
-  footer.appendChild(link);
-  layout.appendChild(footer);
-
+  // footer hint (в success не нужен — там свой блок)
+  if (state.phase !== "success") {
+    const footer = el("div", "footer");
+    footer.appendChild(
+      el("div", "footer__hint", {
+        text: "Мы автоматически включим чат-бота и стабильную связь для сообщений.",
+      })
+    );
+    layout.appendChild(footer);
+  }
 
   root.appendChild(layout);
+
+  // мягкое сообщение об ошибке (если в ready прилетела)
+  if ((state.phase === "ready" || state.phase === "connecting") && state.error) {
+    window.__hubbot_toast?.(state.error, "error");
+  }
+}
+
+function SuccessScreen(state, actions) {
+  const wrap = el("div", "success");
+
+  const title = el("div", "success__title", { text: "Готово ✅" });
+  const subtitle = el("div", "success__subtitle", {
+    text: state.success?.groupName
+      ? `Сообщество «${state.success.groupName}» подключено.`
+      : "Сообщество подключено.",
+  });
+
+  wrap.appendChild(title);
+  wrap.appendChild(subtitle);
+
+  // Чеклист “что сделали”
+  const card = el("div", "success__card");
+  card.appendChild(el("div", "success__cardTitle", { text: "Что настроили автоматически" }));
+
+  const ul = el("div", "success__list");
+  ul.appendChild(successItem("Сообщения сообщества включены"));
+  ul.appendChild(successItem("Возможности ботов активированы (кнопка «Начать»)"));
+  ul.appendChild(successItem("Включена стабильная связь для получения новых сообщений"));
+  card.appendChild(ul);
+
+  wrap.appendChild(card);
+
+  // Важная подсказка про “обновить активность”
+  const note = el("div", "success__note");
+  note.appendChild(el("div", "success__noteTitle", { text: "Важно" }));
+  note.appendChild(
+    el("div", "success__noteText", {
+      text:
+        "В чате управления Hubby интерфейс может обновиться не сразу. " +
+        "Чтобы появились новые кнопки/меню, сделайте любое действие в диалоге: " +
+        "нажмите «Начать», отправьте короткое сообщение или просто обновите чат свайпом вниз.",
+    })
+  );
+
+  wrap.appendChild(note);
+
+  // Кнопки
+  const btnOpen = PrimaryButton({ label: "Перейти в чат управления Hubby" });
+  btnOpen.addEventListener("click", actions.openChat);
+
+  const btnBack = SecondaryButton({ label: "Подключить другое сообщество" });
+  btnBack.addEventListener("click", actions.backToGroups);
+
+  wrap.appendChild(el("div", "spacer"));
+  wrap.appendChild(btnOpen);
+  wrap.appendChild(el("div", "spacer"));
+  wrap.appendChild(btnBack);
+
+  // Немного стилей прямо классами (используем твой existing CSS + добавим ниже)
+  return wrap;
+}
+
+function successItem(text) {
+  const row = el("div", "success__item");
+  const dot = el("div", "success__dot", { text: "✓" });
+  const t = el("div", "success__itemText", { text });
+  row.appendChild(dot);
+  row.appendChild(t);
+  return row;
 }

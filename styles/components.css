@@ -441,3 +441,90 @@ button{
   color: var(--muted);
   min-height: 14px;
 }
+
+/* Success screen */
+.success{
+  padding: 10px 0 6px;
+  display:flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.success__title{
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-size: 22px;
+}
+
+.success__subtitle{
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.success__card{
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-soft);
+  padding: 14px;
+}
+
+.success__cardTitle{
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+
+.success__list{
+  display:flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.success__item{
+  display:flex;
+  align-items:flex-start;
+  gap: 10px;
+}
+
+.success__dot{
+  width: 22px;
+  height: 22px;
+  border-radius: 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: color-mix(in srgb, var(--ok) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--ok) 30%, var(--border));
+  color: var(--ok);
+  font-weight: 900;
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.success__itemText{
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.success__note{
+  border: 1px solid color-mix(in srgb, var(--brand) 22%, var(--border));
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface));
+  border-radius: var(--radius-xl);
+  padding: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.success__noteTitle{
+  font-weight: 850;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.success__noteText{
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
