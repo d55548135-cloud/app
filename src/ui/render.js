@@ -56,7 +56,7 @@ function createShell(viewRoot, state, actions) {
   const content = el("div", "content");
   const section = el("div", "section");
 
-  ui.headerSlot.appendChild(
+  headerSlot.appendChild(
     Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
   );
   const { wrap: searchWrap, input: searchInput, refreshBtn } = SearchBar({
@@ -65,7 +65,7 @@ function createShell(viewRoot, state, actions) {
   });
 
   on(searchInput, "input", (e) => actions.setSearchDebounced(e.target.value));
-  refreshBtn.addEventListener("click", actions.refreshConnections);
+  refreshBtn.addEventListener("click", () => actions.refreshConnections(false));
 
   const listSlot = el("div", "slot slot--list");
 
@@ -108,7 +108,7 @@ function createShell(viewRoot, state, actions) {
 
 function updateHeader(ui, state) {
   clear(ui.headerSlot);
-    ui.headerSlot.appendChild(
+  headerSlot.appendChild(
     Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
   );
 }
