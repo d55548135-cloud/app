@@ -68,8 +68,12 @@ body{
 .footer{
   flex: 0 0 auto;
 
-  padding: 10px var(--pad-lg) calc(10px + env(safe-area-inset-bottom));
-  text-align: center;
+  min-height: 44px; /* чтобы был “воздух”, как системный бар */
+  padding: 0 var(--pad-lg) env(safe-area-inset-bottom);
+
+  display: flex;
+  align-items: center;      /* ✅ вертикальный центр */
+  justify-content: center;  /* ✅ горизонтальный центр */
 
   border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
   background: color-mix(in srgb, var(--surface) 72%, transparent);
@@ -78,22 +82,28 @@ body{
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* link-like button */
+/* ссылка выглядит как системная */
 .footer__how{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1; /* 🔥 убирает смещение baseline */
+
   border: 0;
   background: transparent;
+  text-decoration: none;
 
   color: color-mix(in srgb, var(--brand) 82%, var(--text));
-  font-weight: 750;
+  font-weight: 700;
   font-size: 13px;
   letter-spacing: -0.01em;
 
-  cursor: pointer;
-
   padding: 6px 10px;
-  border-radius: 12px;
+  border-radius: 10px;
 
-  transition: background 160ms ease, transform 160ms ease, color 160ms ease;
+  cursor: pointer;
+  transition: background 160ms ease, transform 120ms ease;
 }
 
 .footer__how:hover{
@@ -101,11 +111,6 @@ body{
 }
 
 .footer__how:active{
-  transform: scale(.98);
-  background: color-mix(in srgb, var(--brand) 14%, transparent);
+  transform: scale(.97);
 }
 
-
-.footer__how{
-  text-decoration: none;
-}
