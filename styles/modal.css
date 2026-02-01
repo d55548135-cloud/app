@@ -176,3 +176,15 @@
   display: none;
   padding: 0;
 }
+
+/* If modal has no contentNode — remove body spacing completely */
+.modal-sheet.is-body-empty .modal-body{
+  display: none;
+  padding: 0;
+}
+
+/* Footer hide when there are no actions */
+.modal-footer.is-empty{
+  display: none;
+  padding: 0;
+}

@@ -11,7 +11,6 @@ export function mountModal(root) {
   const head = el("div", "modal-head");
   const titleEl = el("div", "modal-title");
   const subtitleEl = el("div", "modal-subtitle");
-
   head.appendChild(titleEl);
   head.appendChild(subtitleEl);
 
@@ -46,9 +45,10 @@ export function mountModal(root) {
     setTimeout(() => {
       overlay.style.display = "none";
       sheet.classList.remove("modal-sheet--success");
+      sheet.classList.remove("is-body-empty");
       clear(body);
       clear(footer);
-      footer.classList.add("is-empty"); // ✅ важно
+      footer.classList.add("is-empty");
     }, 170);
   };
 
@@ -91,9 +91,14 @@ export function mountModal(root) {
     if (variant === "success") sheet.classList.add("modal-sheet--success");
     else sheet.classList.remove("modal-sheet--success");
 
-    if (contentNode) body.appendChild(contentNode);
+    // ✅ если контента нет — прячем body полностью
+    if (contentNode) {
+      body.appendChild(contentNode);
+      sheet.classList.remove("is-body-empty");
+    } else {
+      sheet.classList.add("is-body-empty");
+    }
 
-    // ✅ ВСЕГДА кнопки только в footer
     renderActions(actions);
 
     overlay.style.display = "block";
