@@ -105,3 +105,6 @@ body{
   background: color-mix(in srgb, var(--brand) 14%, transparent);
 }
 
+.footer__how{
+  text-decoration: none;
+}

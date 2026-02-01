@@ -9,6 +9,11 @@ import {
   PrimaryButton,
 } from "./templates.js";
 
+export const CONFIG = {
+  HOW_IT_WORKS_URL: "https://vk.com/@your-article-link",
+};
+
+
 export function renderApp(viewRoot, state, actions) {
   if (!viewRoot.__hb) {
     viewRoot.__hb = createShell(viewRoot, state, actions);
@@ -60,13 +65,14 @@ function createShell(viewRoot, state, actions) {
 
   // ✅ Minimal footer: only “Как это работает?”
   const footer = el("div", "footer");
-  const how = el("button", "footer__how", {
-    type: "button",
+    const how = el("a", "footer__how", {
     text: "Как это работает?",
   });
-  how.addEventListener("click", actions.openHowItWorks);
-  footer.appendChild(how);
+  how.href = actions.howItWorksUrl;
+  how.target = "_blank";
+  how.rel = "noopener noreferrer";
 
+  footer.appendChild(how);
   section.appendChild(searchWrap);
   section.appendChild(listSlot);
   content.appendChild(section);
