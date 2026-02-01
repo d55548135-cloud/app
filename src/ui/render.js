@@ -108,7 +108,7 @@ function createShell(viewRoot, state, actions) {
 
 function updateHeader(ui, state) {
   clear(ui.headerSlot);
-  headerSlot.appendChild(
+  ui.headerSlot.appendChild(
     Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
   );
 }
