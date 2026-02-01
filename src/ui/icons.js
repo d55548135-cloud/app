@@ -44,23 +44,24 @@ const ICONS = {
   `,
   refresh: `
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-      <!-- дуга -->
+      <!-- дуга с явным разрывом -->
       <path
-        d="M20 12a8 8 0 1 1-2.02-5.33"
+        d="M6.2 12a5.8 5.8 0 1 1 9.6 4.3"
         stroke="currentColor"
-        stroke-width="2.2"
+        stroke-width="2"
         stroke-linecap="round"
       />
-      <!-- стрелка -->
+      <!-- отдельная стрелка, НЕ соединённая с дугой -->
       <path
-        d="M20 5.5v5.2h-5.2"
+        d="M17.5 6.5v4.8h-4.8"
         stroke="currentColor"
-        stroke-width="2.2"
+        stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
       />
     </svg>
   `,
+
 };
 
 export function Icon(name, className = "icon") {
