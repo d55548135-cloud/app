@@ -22,6 +22,8 @@ const store = new Store({
   error: null,
   busy: false,
   refreshing: false, // ✅ NEW
+  donutActive: false,       // ✅
+  donutCheckedAt: null,     // ✅
 });
 
 let progressEngine = null;

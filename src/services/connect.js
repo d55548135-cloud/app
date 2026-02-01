@@ -21,7 +21,7 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
   try {
     // ✅ ШАГ 1: Доступ — ОЖИДАНИЕ пользователя
     // ВАЖНО: cap маленький, чтобы прогресс не “убежал” пока окно VK открыто
-    onProgress?.(1, `Ожидаю подтверждение доступа к «${groupName}»`, 22);
+    onProgress?.(1, `Ожидаю подтверждение доступа к «${groupName}»`, 39);
 
     let token;
     try {
@@ -41,7 +41,7 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
     await sleep(180);
 
     // ✅ ШАГ 2: чат-бот
-    onProgress?.(2, "Настраиваю чат-бота в сообществе", 78);
+    onProgress?.(2, "Настраиваю чат-бота в сообществе", 60);
     await sleep(250);
     try {
       await vkGroupsSetSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
