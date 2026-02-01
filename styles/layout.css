@@ -172,3 +172,26 @@ body{
 /* make svg sit perfectly */
 .subchip svg{ display:block; }
 
+
+/* чтобы SVG не “резался” и не жил на baseline */
+.subchip__ico{
+  width: 20px;          /* чуть больше чем 18 — чтобы не подрезало */
+  height: 20px;
+  display: grid;
+  place-items: center;
+  line-height: 0;       /* ✅ убирает baseline-обрезание */
+}
+
+.subchip__ico svg{
+  display: block;       /* ✅ */
+  width: 18px;
+  height: 18px;
+}
+
+/* ✅ ВАЖНО: если у тебя где-то есть .icon svg { fill:none; } или подобное — это перекрывает глазурь
+   Поэтому делаем жёсткий override только для donut */
+.donut-svg,
+.donut-svg *{
+  fill: initial !important;
+  stroke: none !important;
+}
