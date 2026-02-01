@@ -1,16 +1,6 @@
 import { el } from "./dom.js";
 import { Icon } from "./icons.js";
 
-const THRESHOLDS = { step2: 55, step3: 78, step4: 94 };
-
-function percentToVisualStep(percent) {
-  const p = Number.isFinite(percent) ? percent : 0;
-  if (p >= THRESHOLDS.step4) return 4;
-  if (p >= THRESHOLDS.step3) return 3;
-  if (p >= THRESHOLDS.step2) return 2;
-  return 1;
-}
-
 export function Header({ phase, progress }) {
   const wrap = el("div", "header");
 
@@ -29,10 +19,11 @@ export function Header({ phase, progress }) {
   top.appendChild(title);
   top.appendChild(subtitle);
 
+  // ✅ ВАЖНО: шаг — по факту, не по процентам
+  const step = phase === "connecting" ? (Number(progress?.step) || 1) : 0;
   const percent = Number.isFinite(progress?.percent) ? progress.percent : 0;
-  const visualStep = phase === "connecting" ? percentToVisualStep(percent) : 0;
 
-  const steps = Stepper({ phase, step: visualStep });
+  const steps = Stepper({ phase, step });
   const bar = ProgressBar({ phase, percent });
 
   wrap.appendChild(top);
@@ -48,9 +39,16 @@ export function Stepper({ phase, step }) {
 
   labels.forEach((label, i) => {
     const idx = i + 1;
-    const active = phase === "connecting" && step >= idx;
 
-    const item = el("div", `stepper__item ${active ? "is-active" : ""}`);
+    // ✅ active ровно когда step дошёл до idx
+    const active = phase === "connecting" && step >= idx;
+    const current = phase === "connecting" && step === idx;
+
+    const item = el(
+      "div",
+      `stepper__item ${active ? "is-active" : ""} ${current ? "is-current" : ""}`
+    );
+
     const dot = el("div", "stepper__dot");
     const text = el("div", "stepper__text", { text: label });
 
@@ -81,6 +79,7 @@ export function ProgressBar({ phase, percent }) {
 
   return wrap;
 }
+
 
 /**
  * ✅ SearchBar with refresh icon button

@@ -247,6 +247,19 @@ const actions = {
       });
     } catch (e) {
       stopProgressEngine();
+
+      if (e?.code === "PERMISSION_DENIED" || e?.message === "PERMISSION_DENIED") {
+        store.setState({
+          phase: "ready",
+          busy: false,
+          error: null,
+          progress: { step: 0, label: "", percent: 0 },
+        });
+
+        window.__hubbot_toast?.("Подключение отменено — доступ не предоставлен", "error");
+        return;
+      }
+
       store.setState({
         phase: "ready",
         busy: false,
