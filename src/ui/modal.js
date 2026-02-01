@@ -9,16 +9,15 @@ export function mountModal(root) {
   const sheet = el("div", "modal-sheet");
 
   const head = el("div", "modal-head");
-  const title = el("div", "modal-title");
-  const subtitle = el("div", "modal-subtitle");
+  const titleEl = el("div", "modal-title");
+  const subtitleEl = el("div", "modal-subtitle");
 
-  head.appendChild(title);
-  head.appendChild(subtitle);
+  head.appendChild(titleEl);
+  head.appendChild(subtitleEl);
 
   const body = el("div", "modal-body");
   const footer = el("div", "modal-footer");
 
-  // ✅ SVG-крестик
   const closeBtn = el("button", "modal-close", {
     type: "button",
     "aria-label": "Закрыть",
@@ -49,6 +48,7 @@ export function mountModal(root) {
       sheet.classList.remove("modal-sheet--success");
       clear(body);
       clear(footer);
+      footer.classList.add("is-empty"); // ✅ важно
     }, 170);
   };
 
@@ -57,54 +57,49 @@ export function mountModal(root) {
     if (e.target === overlay) close();
   });
 
-  function openBase({ title: t, subtitle: s, actions = [] }) {
-    title.textContent = t || "";
-    subtitle.textContent = s || "";
-    clear(body);
+  function renderActions(actions = []) {
     clear(footer);
+
+    if (!actions.length) {
+      footer.classList.add("is-empty");
+      return;
+    }
+
+    footer.classList.remove("is-empty");
 
     actions.forEach((a) => {
       const btn = el("button", `btn modal-btn modal-btn--${a.type || "secondary"}`, {
         type: "button",
         text: a.label,
       });
+
       btn.addEventListener("click", () => {
         close();
         a.onClick?.();
       });
-      body.appendChild(btn);
-    });
 
-    overlay.style.display = "block";
-    requestAnimationFrame(() => overlay.classList.add("is-open"));
+      footer.appendChild(btn);
+    });
   }
 
-  function openSuccess({ title: t, subtitle: s, contentNode, actions = [] }) {
-    title.textContent = t || "Готово";
-    subtitle.textContent = s || "";
-    clear(body);
-    clear(footer);
+  function open({ variant = "base", title, subtitle, contentNode, actions = [] }) {
+    titleEl.textContent = title || "";
+    subtitleEl.textContent = subtitle || "";
 
-    sheet.classList.add("modal-sheet--success");
+    clear(body);
+
+    if (variant === "success") sheet.classList.add("modal-sheet--success");
+    else sheet.classList.remove("modal-sheet--success");
 
     if (contentNode) body.appendChild(contentNode);
 
-    actions.forEach((a) => {
-      const btn = el("button", `btn modal-btn modal-btn--${a.type || "secondary"}`, {
-        type: "button",
-        text: a.label,
-      });
-      btn.addEventListener("click", () => {
-        close();
-        a.onClick?.();
-      });
-      footer.appendChild(btn);
-    });
+    // ✅ ВСЕГДА кнопки только в footer
+    renderActions(actions);
 
     overlay.style.display = "block";
     requestAnimationFrame(() => overlay.classList.add("is-open"));
   }
 
-  window.__hubbot_modal_open = (opts) => openBase(opts);
-  window.__hubbot_modal_success = (opts) => openSuccess(opts);
+  window.__hubbot_modal_open = (opts) => open({ ...opts, variant: "base" });
+  window.__hubbot_modal_success = (opts) => open({ ...opts, variant: "success" });
 }

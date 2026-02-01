@@ -170,3 +170,9 @@
   width: 0;
   height: 0;
 }
+
+/* Hide footer completely when there are no actions */
+.modal-footer.is-empty{
+  display: none;
+  padding: 0;
+}
