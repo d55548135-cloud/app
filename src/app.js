@@ -1,4 +1,5 @@
 import { CONFIG } from "./config.js";
+import { checkDonut } from "./services/donut.js";
 import { vkInit, vkGetUserToken, vkGroupsGetAdmin } from "./api/vk.js";
 import { Store } from "./state/store.js";
 import { storageLoadConnections } from "./services/storage.js";
