@@ -345,8 +345,8 @@ function createProgressEngine(emit) {
   // пороги (как у тебя были cap’ы в connectFlow)
   const STEP_MIN_PERCENT = {
     1: 0,
-    2: 45,
-    3: 68,
+    2: 39,
+    3: 60,
     4: 94,
   };
 
