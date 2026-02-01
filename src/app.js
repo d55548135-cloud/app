@@ -92,6 +92,26 @@ const actions = {
     }
   },
 
+  openHowItWorks() {
+    const url = CONFIG.HOW_IT_WORKS_URL;
+
+    if (!url) {
+      window.__hubbot_toast?.("Ссылка «Как это работает?» ещё не настроена", "error");
+      return;
+    }
+
+    // VK Bridge (если поддерживается)
+    try {
+      if (window.vkBridge?.send) {
+        window.vkBridge.send("VKWebAppOpenURL", { url });
+        return;
+      }
+    } catch {}
+
+    // fallback
+    window.open(url, "_blank");
+  },
+
   async onGroupClick(groupId) {
     const state = store.getState();
     if (state.busy) return;
@@ -114,12 +134,6 @@ const actions = {
             type: "primary",
             onClick: () => actions.openChat(),
           },
-          {
-            id: "ok",
-            label: "Закрыть",
-            type: "secondary",
-            onClick: () => {},
-          },
         ],
       });
       return;
@@ -135,7 +149,6 @@ const actions = {
     const group = state.groups.find((g) => g.id === groupId);
     if (!group) return;
 
-    // ✅ ЛИМИТ: НЕ ВЫТЕСНЯЕМ, А ЗАПРЕЩАЕМ
     const max = Number.isFinite(CONFIG.MAX_CONNECTIONS) ? CONFIG.MAX_CONNECTIONS : 2;
     const alreadyConnected = state.connected.some((x) => x.id === groupId);
 
@@ -151,12 +164,6 @@ const actions = {
             label: "Открыть управление Hubby",
             type: "primary",
             onClick: () => actions.openChat(),
-          },
-          {
-            id: "close",
-            label: "Понятно",
-            type: "secondary",
-            onClick: () => {},
           },
         ],
       });
@@ -198,6 +205,7 @@ const actions = {
 
         const contentNode = buildSuccessContent(group.name);
 
+        // ✅ только primary — закрытие крестиком
         window.__hubbot_modal_success?.({
           title: "Успешно подключено",
           subtitle: `Сообщество «${group.name}» готово к работе.`,
@@ -208,12 +216,6 @@ const actions = {
               label: "Перейти в чат управления Hubby",
               type: "primary",
               onClick: () => actions.openChat(),
-            },
-            {
-              id: "close",
-              label: "Остаться в списке сообществ",
-              type: "secondary",
-              onClick: () => {},
             },
           ],
         });
@@ -259,12 +261,6 @@ function stopProgressEngine() {
   }
 }
 
-/**
- * ✅ Прогресс: быстрее и без резкого “взлёта” на финале
- * - ускорили инерцию
- * - подняли maxBeforeFinish ближе к 100
- * - сделали финиш дольше и мягче
- */
 function createProgressEngine(emit) {
   let raf = null;
   let running = false;
@@ -274,8 +270,8 @@ function createProgressEngine(emit) {
   let step = 1;
   let label = "Начинаю…";
 
-  const speed = 22;          // было 12 → стало бодрее
-  const maxBeforeFinish = 97; // было 92 → теперь меньше “скачок” на финале
+  const speed = 22;
+  const maxBeforeFinish = 97;
 
   let last = performance.now();
 
@@ -288,7 +284,6 @@ function createProgressEngine(emit) {
 
     if (percent < target) {
       const distance = target - percent;
-      // чем ближе к target, тем медленнее – но не слишком
       const ease = Math.max(0.22, Math.min(1, distance / 22));
       percent += speed * ease * dt;
       percent = Math.min(percent, target);
@@ -319,12 +314,11 @@ function createProgressEngine(emit) {
       this.stop();
 
       const start = percent;
-      const duration = 1400; // было 900 → финал мягче и без “взлёта”
+      const duration = 1400;
       const startTime = performance.now();
 
       const finishTick = (now) => {
         const t = Math.min(1, (now - startTime) / duration);
-        // плавная кривая без резкого ускорения
         const eased = 1 - Math.pow(1 - t, 4);
         const value = start + (100 - start) * eased;
 

@@ -15,17 +15,14 @@ import {
  * - аватарки не “моргают”
  */
 export function renderApp(viewRoot, state, actions) {
-  // init once
   if (!viewRoot.__hb) {
     viewRoot.__hb = createShell(viewRoot, state, actions);
   }
 
   const ui = viewRoot.__hb;
 
-  // update header every time (дёшево)
   updateHeader(ui, state);
 
-  // phase switches
   if (state.phase === "loading" || state.phase === "boot") {
     showLoading(ui);
     return;
@@ -36,22 +33,18 @@ export function renderApp(viewRoot, state, actions) {
     return;
   }
 
-  // ready / connecting
   showMain(ui);
 
-  // update search value (без перезатирания курсора)
   if (ui.searchInput && ui.searchInput.value !== (state.search || "")) {
     ui.searchInput.value = state.search || "";
   }
 
-  // update list only when needed
   const listKey = buildListKey(state.filteredGroups, state.connected, state.busy);
   if (ui.lastListKey !== listKey) {
     ui.lastListKey = listKey;
     renderList(ui, state, actions);
   }
 
-  // disable interactions while busy (без уничтожения DOM)
   ui.layout.classList.toggle("is-busy", !!state.busy);
 }
 
@@ -63,23 +56,32 @@ function createShell(viewRoot, state, actions) {
   const content = el("div", "content");
   const section = el("div", "section");
 
-  // header placeholder (will be replaced)
   headerSlot.appendChild(Header({ phase: state.phase, progress: state.progress }));
 
-  // search
   const { wrap: searchWrap, input: searchInput } = SearchBar({ value: state.search });
   on(searchInput, "input", (e) => actions.setSearchDebounced(e.target.value));
 
-  // list slot
   const listSlot = el("div", "slot slot--list");
 
-  // footer
+  // ✅ Premium footer
   const footer = el("div", "footer");
-  footer.appendChild(
-    el("div", "footer__hint", {
-      text: "Мы автоматически включим чат-бота и стабильную связь для сообщений.",
-    })
-  );
+
+  const row = el("div", "footer__row");
+
+  const howBtn = el("button", "footer__link", {
+    type: "button",
+    text: "Как это работает?",
+  });
+  howBtn.addEventListener("click", actions.openHowItWorks);
+
+  row.appendChild(howBtn);
+
+  const hint = el("div", "footer__hint", {
+    text: "Мы автоматически включим чат-бота и стабильную связь для сообщений.",
+  });
+
+  footer.appendChild(row);
+  footer.appendChild(hint);
 
   section.appendChild(searchWrap);
   section.appendChild(listSlot);
@@ -91,7 +93,6 @@ function createShell(viewRoot, state, actions) {
 
   viewRoot.appendChild(layout);
 
-  // extra screens
   const overlaySlot = el("div", "slot slot--overlay");
   viewRoot.appendChild(overlaySlot);
 
@@ -109,7 +110,6 @@ function createShell(viewRoot, state, actions) {
 }
 
 function updateHeader(ui, state) {
-  // replace header node (but not whole layout)
   clear(ui.headerSlot);
   ui.headerSlot.appendChild(Header({ phase: state.phase, progress: state.progress }));
 }
@@ -139,7 +139,6 @@ function showError(ui, state, actions) {
 
 function showMain(ui) {
   clear(ui.overlaySlot);
-  // listSlot is managed separately
 }
 
 function renderList(ui, state, actions) {
@@ -180,7 +179,6 @@ function renderList(ui, state, actions) {
 }
 
 function buildListKey(groups, connected, busy) {
-  // lightweight stable key: ids + connected ids + busy flag
   const g = (groups || []).map((x) => x.id).join(",");
   const c = (connected || []).map((x) => x.id).join(",");
   return `${g}|${c}|${busy ? 1 : 0}`;
