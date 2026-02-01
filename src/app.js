@@ -78,6 +78,8 @@ export async function initApp() {
 const actions = {
   retry: () => initApp(),
 
+  howItWorksUrl: CONFIG.HOW_IT_WORKS_URL,
+
   setSearchDebounced: debounce((value) => {
     store.setState({ search: value });
     filterGroups();
@@ -149,7 +151,7 @@ const actions = {
     const group = state.groups.find((g) => g.id === groupId);
     if (!group) return;
 
-    const max = Number.isFinite(CONFIG.MAX_CONNECTIONS) ? CONFIG.MAX_CONNECTIONS : 2;
+    const max = Number.isFinite(CONFIG.MAX_CONNECTED) ? CONFIG.MAX_CONNECTED : 2;
     const alreadyConnected = state.connected.some((x) => x.id === groupId);
 
     if (!alreadyConnected && state.connected.length >= max) {

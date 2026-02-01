@@ -9,10 +9,6 @@ import {
   PrimaryButton,
 } from "./templates.js";
 
-export const CONFIG = {
-  HOW_IT_WORKS_URL: "https://vk.com/@your-article-link",
-};
-
 
 export function renderApp(viewRoot, state, actions) {
   if (!viewRoot.__hb) {
