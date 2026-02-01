@@ -321,43 +321,47 @@ function createProgressEngine(emit) {
   let raf = null;
   let running = false;
 
-  // текущие (то, что видит UI)
   let percent = 0;
-  let shownStep = 1;
-  let shownLabel = "Начинаю…";
-
-  // “цель” (то, что приходит из connectFlow)
-  let desiredStep = 1;
-  let desiredLabel = "Начинаю…";
   let cap = 25;
+
+  // ✅ “логически доступные” шаги (могут стать 4 быстро)
+  let desiredMaxStep = 1;
+
+  // ✅ подписи для каждого шага (берём те, что пришли из connectFlow)
+  const stepLabels = {
+    1: "Начинаю…",
+    2: "Подключаю чат-бот…",
+    3: "Включаю связь…",
+    4: "Готово",
+  };
+
+  // ✅ что реально показываем в UI
+  let shownStep = 1;
+  let shownLabel = stepLabels[1];
 
   const speed = 22;
   const maxBeforeFinish = 97;
 
-  // ✅ Пороги: когда можно зажигать следующий шаг
-  // (можешь подогнать числа под свой вкус)
+  // пороги (как у тебя были cap’ы в connectFlow)
   const STEP_MIN_PERCENT = {
-    1: 0,   // Доступ
-    2: 55,  // Чат-бот
-    3: 78,  // Связь
-    4: 94,  // Готово
+    1: 0,
+    2: 55,
+    3: 78,
+    4: 94,
   };
 
   let last = performance.now();
 
-  function maybeCommitStep() {
-    // если целевой шаг выше — зажигаем его только когда % дошёл до порога
-    if (desiredStep > shownStep) {
-      const minP = STEP_MIN_PERCENT[desiredStep] ?? 0;
-      if (percent >= minP - 0.5) {
-        shownStep = desiredStep;
-        shownLabel = desiredLabel;
-      }
-    } else {
-      // если шаг не “вперёд”, обновляем label сразу (без ожиданий)
-      shownStep = desiredStep;
-      shownLabel = desiredLabel;
+  function computeShownStep(p) {
+    // показываем максимальный шаг, который:
+    // 1) не выше desiredMaxStep
+    // 2) percent дошёл до его порога
+    let s = 1;
+    for (let i = 2; i <= desiredMaxStep; i++) {
+      const minP = STEP_MIN_PERCENT[i] ?? 0;
+      if (p >= minP - 0.5) s = i;
     }
+    return s;
   }
 
   function loop(now) {
@@ -374,8 +378,9 @@ function createProgressEngine(emit) {
       percent = Math.min(percent, target);
     }
 
-    // ✅ синхронизация: шаг не опережает проценты
-    maybeCommitStep();
+    // ✅ Шаги загораются только когда % дошёл до порога
+    shownStep = computeShownStep(percent);
+    shownLabel = stepLabels[shownStep] || shownLabel;
 
     emit({
       progress: {
@@ -394,6 +399,7 @@ function createProgressEngine(emit) {
       last = performance.now();
       raf = requestAnimationFrame(loop);
     },
+
     stop() {
       running = false;
       if (raf) cancelAnimationFrame(raf);
@@ -401,12 +407,16 @@ function createProgressEngine(emit) {
     },
 
     setStep(nextStep, nextLabel, nextCap) {
-      desiredStep = Number(nextStep) || 1;
-      desiredLabel = nextLabel || "";
+      const s = Math.max(1, Math.min(4, Number(nextStep) || 1));
 
-      // ✅ кап не должен быть ниже порога шага,
-      // иначе шаг никогда не “дождётся” процентов
-      const minCap = STEP_MIN_PERCENT[desiredStep] ?? 0;
+      // ✅ не перезаписываем “текущий”, а увеличиваем максимум
+      desiredMaxStep = Math.max(desiredMaxStep, s);
+
+      // запоминаем подпись для конкретного шага
+      if (nextLabel) stepLabels[s] = nextLabel;
+
+      // ✅ cap не должен быть ниже порога шага, иначе он не включится
+      const minCap = STEP_MIN_PERCENT[s] ?? 0;
 
       if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap, minCap);
       else cap = Math.max(cap, minCap);
@@ -415,20 +425,21 @@ function createProgressEngine(emit) {
     finishTo100(onDone) {
       this.stop();
 
-      // перед финишем гарантируем, что “Готово” не включится раньше 94%
-      desiredStep = 4;
-      desiredLabel = "Готово";
+      // ✅ финал: логически доступен шаг 4, но он загорится только после 94%
+      desiredMaxStep = Math.max(desiredMaxStep, 4);
+      stepLabels[4] = "Готово";
 
       const start = percent;
       const duration = 1400;
       const startTime = performance.now();
 
-      const finishTick = (now) => {
+      const tick = (now) => {
         const t = Math.min(1, (now - startTime) / duration);
         const eased = 1 - Math.pow(1 - t, 4);
         percent = start + (100 - start) * eased;
 
-        maybeCommitStep();
+        shownStep = computeShownStep(percent);
+        shownLabel = stepLabels[shownStep] || shownLabel;
 
         emit({
           progress: {
@@ -438,12 +449,13 @@ function createProgressEngine(emit) {
           },
         });
 
-        if (t < 1) requestAnimationFrame(finishTick);
+        if (t < 1) requestAnimationFrame(tick);
         else onDone?.();
       };
 
-      requestAnimationFrame(finishTick);
+      requestAnimationFrame(tick);
     },
   };
 }
+
 
