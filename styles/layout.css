@@ -64,63 +64,44 @@ body{
   margin: 0 auto;
 }
 
-/* ===== Footer (premium) ===== */
+/* ===== Footer (minimal, premium) ===== */
 .footer{
   flex: 0 0 auto;
 
-  padding: 12px var(--pad-lg) calc(12px + env(safe-area-inset-bottom));
+  padding: 10px var(--pad-lg) calc(10px + env(safe-area-inset-bottom));
   text-align: center;
 
-  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--surface) 45%, transparent),
-    color-mix(in srgb, var(--surface) 92%, transparent)
-  );
+  border-top: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
 
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
-.footer__row{
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
+/* link-like button */
+.footer__how{
+  border: 0;
+  background: transparent;
 
-.footer__hint{
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.35;
-}
-
-/* Кнопка-ссылка как “chip” */
-.footer__link{
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  color: color-mix(in srgb, var(--text) 92%, white);
-
-  font-weight: 700;
-  font-size: 12.5px;
-
-  padding: 8px 12px;
-  border-radius: 999px;
+  color: color-mix(in srgb, var(--brand) 82%, var(--text));
+  font-weight: 750;
+  font-size: 13px;
+  letter-spacing: -0.01em;
 
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 
-  box-shadow: 0 6px 18px rgba(0,0,0,.18);
-  transition: transform 160ms ease, background 160ms ease;
+  padding: 6px 10px;
+  border-radius: 12px;
+
+  transition: background 160ms ease, transform 160ms ease, color 160ms ease;
 }
 
-.footer__link:hover{
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
+.footer__how:hover{
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
 }
 
-.footer__link:active{
+.footer__how:active{
   transform: scale(.98);
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
 }
+

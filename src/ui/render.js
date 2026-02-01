@@ -9,11 +9,6 @@ import {
   PrimaryButton,
 } from "./templates.js";
 
-/**
- * Stateful renderer:
- * - не пересоздаёт список на каждом обновлении прогресса
- * - аватарки не “моргают”
- */
 export function renderApp(viewRoot, state, actions) {
   if (!viewRoot.__hb) {
     viewRoot.__hb = createShell(viewRoot, state, actions);
@@ -63,25 +58,14 @@ function createShell(viewRoot, state, actions) {
 
   const listSlot = el("div", "slot slot--list");
 
-  // ✅ Premium footer
+  // ✅ Minimal footer: only “Как это работает?”
   const footer = el("div", "footer");
-
-  const row = el("div", "footer__row");
-
-  const howBtn = el("button", "footer__link", {
+  const how = el("button", "footer__how", {
     type: "button",
     text: "Как это работает?",
   });
-  howBtn.addEventListener("click", actions.openHowItWorks);
-
-  row.appendChild(howBtn);
-
-  const hint = el("div", "footer__hint", {
-    text: "Мы автоматически включим чат-бота и стабильную связь для сообщений.",
-  });
-
-  footer.appendChild(row);
-  footer.appendChild(hint);
+  how.addEventListener("click", actions.openHowItWorks);
+  footer.appendChild(how);
 
   section.appendChild(searchWrap);
   section.appendChild(listSlot);

@@ -16,7 +16,6 @@ export function mountModal(root) {
   head.appendChild(subtitle);
 
   const body = el("div", "modal-body");
-  const footer = el("div", "modal-footer");
 
   // ✅ SVG-крестик
   const closeBtn = el("button", "modal-close", {
@@ -35,7 +34,6 @@ export function mountModal(root) {
 
   sheet.appendChild(head);
   sheet.appendChild(body);
-  sheet.appendChild(footer);
   sheet.appendChild(closeBtn);
 
   overlay.appendChild(sheet);
@@ -48,7 +46,6 @@ export function mountModal(root) {
       overlay.style.display = "none";
       sheet.classList.remove("modal-sheet--success");
       clear(body);
-      clear(footer);
     }, 170);
   };
 
@@ -61,7 +58,6 @@ export function mountModal(root) {
     title.textContent = t || "";
     subtitle.textContent = s || "";
     clear(body);
-    clear(footer);
 
     actions.forEach((a) => {
       const btn = el("button", `btn modal-btn modal-btn--${a.type || "secondary"}`, {
@@ -83,7 +79,6 @@ export function mountModal(root) {
     title.textContent = t || "Готово";
     subtitle.textContent = s || "";
     clear(body);
-    clear(footer);
 
     sheet.classList.add("modal-sheet--success");
 
@@ -98,7 +93,6 @@ export function mountModal(root) {
         close();
         a.onClick?.();
       });
-      footer.appendChild(btn);
     });
 
     overlay.style.display = "block";
