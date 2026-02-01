@@ -11,6 +11,10 @@ export async function checkDonut({ userToken, groupId }) {
       access_token: userToken, // ✅ ЯВНО user token
     });
 
+    if (CONFIG.DEBUG) {
+      console.debug("donut.isDon:", res);
+    }
+
     // Обычно ответ: { response: { is_don: 1 } } или { is_don: 1 } — зависит от vkCall
     const isDon =
       res?.is_don ??
