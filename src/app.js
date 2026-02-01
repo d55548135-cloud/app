@@ -126,18 +126,23 @@ const actions = {
   async openChat() {
     const url = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
 
-    // 1) Prefer VK Bridge (native)
+    // 1) Try bridge (some platforms don't support)
     try {
       if (window.vkBridge?.send) {
         await window.vkBridge.send("VKWebAppOpenURL", { url });
         return;
       }
     } catch (e) {
-      console.warn("VKWebAppOpenURL failed, fallback to tab", e);
+      // error_code: 6 => Unsupported platform (expected)
+      const code = e?.error_data?.error_code;
+
+      if (CONFIG.DEBUG && code !== 6) {
+        console.warn("VKWebAppOpenURL failed", e);
+      }
+      // silent fallback
     }
 
-    // 2) Hard fallback: open as top-level tab
-    // Important: use noopener,noreferrer to avoid window.opener and iframe weirdness
+    // 2) Open as top-level tab (reliable)
     const a = document.createElement("a");
     a.href = url;
     a.target = "_blank";
@@ -146,7 +151,6 @@ const actions = {
     a.click();
     a.remove();
   },
-
 
   async onGroupClick(groupId) {
     const state = store.getState();
