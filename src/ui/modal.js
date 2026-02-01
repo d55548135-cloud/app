@@ -74,8 +74,8 @@ export function mountModal(root) {
       });
 
       btn.addEventListener("click", () => {
-        close();
         a.onClick?.();
+        close();
       });
 
       footer.appendChild(btn);

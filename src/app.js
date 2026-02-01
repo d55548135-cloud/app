@@ -123,20 +123,30 @@ const actions = {
     filterGroups();
   }, 120),
 
-  openChat() {
+  async openChat() {
     const url = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
+
+    // 1) пробуем через VK Bridge (если поддерживается в этом окружении)
     try {
       if (window.vkBridge?.send) {
-        window.vkBridge.send("VKWebAppOpenURL", {
-          url,
-        });
+        await window.vkBridge.send("VKWebAppOpenURL", { url });
         return;
       }
-    } catch {}
+    } catch (e) {
+      // тихо падаем в fallback
+      console.warn("VKWebAppOpenURL failed, fallback to window.open", e);
+    }
 
-    // fallback для браузеров
-    window.open(url, "_blank", "noopener,noreferrer");
+    // 2) fallback: новая вкладка (не убивает мини-апп)
+    const w = window.open(url, "_blank", "noopener,noreferrer");
+    if (!w) {
+      // если попап-блокер — хотя бы откроем в текущем (редко, но лучше чем ничего)
+      try {
+        window.location.href = url;
+      } catch {}
+    }
   },
+
 
   async onGroupClick(groupId) {
     const state = store.getState();
