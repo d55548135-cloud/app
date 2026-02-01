@@ -2,24 +2,26 @@ html, body{
   height: 100%;
 }
 
-/* В VK webview body часто ведёт себя нестабильно как scroll-container */
 body{
-  overflow: hidden;
   margin: 0;
+  overflow: hidden; /* ✅ не скроллим body */
 }
 
+#app, #app-view, .app-root{
+  height: 100%;
+}
+
+/* layout — рамка на весь экран, без скролла */
 .layout{
-  height: 100vh;          /* вместо min-height */
-  display:flex;
+  height: 100%;
+  display: flex;
   flex-direction: column;
-
-  overflow: auto;         /* ✅ скролл контейнер */
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden; /* ✅ скролл отключён */
 }
 
+/* header НЕ sticky — не прилипает */
 .header{
-  position: relative;     /* ❌ было sticky */
+  position: relative;
   top: auto;
   z-index: 5;
 
@@ -47,8 +49,13 @@ body{
   line-height: 1.25;
 }
 
+/* ✅ скроллится только content */
 .content{
-  flex: 0 0 auto;         /* ❌ было flex:1 */
+  flex: 1 1 auto;                 /* занимает всё оставшееся место */
+  overflow: auto;                 /* ✅ единственный scroll-container */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
   padding: var(--pad);
 }
 
@@ -57,7 +64,9 @@ body{
   margin: 0 auto;
 }
 
+/* footer внизу экрана, вне прокрутки */
 .footer{
+  flex: 0 0 auto;
   padding: 10px var(--pad-lg) calc(10px + env(safe-area-inset-bottom));
   color: var(--muted);
   font-size: 12px;
@@ -65,7 +74,6 @@ body{
 }
 
 .spacer{ height: 12px; }
-
 
 .footer__link{
   margin-top: 8px;
@@ -80,5 +88,3 @@ body{
 .footer__link:active{
   background: color-mix(in srgb, var(--brand) 10%, transparent);
 }
-
-
