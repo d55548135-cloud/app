@@ -24,5 +24,5 @@ export const CONFIG = {
     API: 14000,
   },
 
-  DEBUG: false,
+  DEBUG: true,
 };
