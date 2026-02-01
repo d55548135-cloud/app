@@ -20,6 +20,7 @@ const store = new Store({
   search: "",
   error: null,
   busy: false,
+  refreshing: false, // ✅ NEW
 });
 
 let progressEngine = null;
@@ -43,6 +44,13 @@ export async function initApp() {
   store.subscribe(() => renderApp(viewRoot, store.getState(), actions));
   renderApp(viewRoot, store.getState(), actions);
 
+  // ✅ авто-синк при возврате в мини-апп
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      actions.refreshConnections(true);
+    }
+  });
+
   store.setState({ phase: "loading", error: null });
 
   try {
@@ -60,6 +68,7 @@ export async function initApp() {
       filteredGroups: groups,
       error: null,
       busy: false,
+      refreshing: false,
       progress: { step: 0, label: "", percent: 0 },
     });
 
@@ -70,8 +79,28 @@ export async function initApp() {
       phase: "error",
       error: normalizeError(e, "Не удалось загрузить группы. Проверьте доступ и повторите."),
       busy: false,
+      refreshing: false,
     });
     root.setAttribute("aria-busy", "false");
+  }
+}
+
+async function syncConnectionsFromStorage({ silent = false } = {}) {
+  try {
+    const next = await storageLoadConnections(CONFIG.STORAGE_KEY);
+    const prev = store.getState().connected;
+
+    const prevKey = (prev || []).map((x) => x.id).join(",");
+    const nextKey = (next || []).map((x) => x.id).join(",");
+
+    if (prevKey !== nextKey) {
+      store.setState({ connected: next });
+      if (!silent) window.__hubbot_toast?.("Список подключений обновлён", "success");
+    } else {
+      if (!silent) window.__hubbot_toast?.("Уже актуально", "success");
+    }
+  } catch {
+    if (!silent) window.__hubbot_toast?.("Не удалось обновить список", "error");
   }
 }
 
@@ -79,6 +108,15 @@ const actions = {
   retry: () => initApp(),
 
   howItWorksUrl: CONFIG.HOW_IT_WORKS_URL,
+
+  refreshConnections: async (silent = false) => {
+    const state = store.getState();
+    if (state.refreshing || state.busy) return;
+
+    store.setState({ refreshing: true });
+    await syncConnectionsFromStorage({ silent });
+    store.setState({ refreshing: false });
+  },
 
   setSearchDebounced: debounce((value) => {
     store.setState({ search: value });
@@ -94,29 +132,9 @@ const actions = {
     }
   },
 
-  openHowItWorks() {
-    const url = CONFIG.HOW_IT_WORKS_URL;
-
-    if (!url) {
-      window.__hubbot_toast?.("Ссылка «Как это работает?» ещё не настроена", "error");
-      return;
-    }
-
-    // VK Bridge (если поддерживается)
-    try {
-      if (window.vkBridge?.send) {
-        window.vkBridge.send("VKWebAppOpenURL", { url });
-        return;
-      }
-    } catch {}
-
-    // fallback
-    window.open(url, "_blank");
-  },
-
   async onGroupClick(groupId) {
     const state = store.getState();
-    if (state.busy) return;
+    if (state.busy || state.refreshing) return;
 
     store.setState({ selectedGroupId: groupId });
 
@@ -146,12 +164,16 @@ const actions = {
 
   async startConnect(groupId) {
     const state = store.getState();
-    if (state.busy) return;
+    if (state.busy || state.refreshing) return;
 
     const group = state.groups.find((g) => g.id === groupId);
     if (!group) return;
 
-    const max = Number.isFinite(CONFIG.MAX_CONNECTED) ? CONFIG.MAX_CONNECTED : 2;
+    // ⚠️ у тебя в config MAX_CONNECTED, но в коде было MAX_CONNECTIONS — оставим безопасно:
+    const max = Number.isFinite(CONFIG.MAX_CONNECTIONS)
+      ? CONFIG.MAX_CONNECTIONS
+      : (Number.isFinite(CONFIG.MAX_CONNECTED) ? CONFIG.MAX_CONNECTED : 2);
+
     const alreadyConnected = state.connected.some((x) => x.id === groupId);
 
     if (!alreadyConnected && state.connected.length >= max) {
@@ -207,7 +229,6 @@ const actions = {
 
         const contentNode = buildSuccessContent(group.name);
 
-        // ✅ только primary — закрытие крестиком
         window.__hubbot_modal_success?.({
           title: "Успешно подключено",
           subtitle: `Сообщество «${group.name}» готово к работе.`,

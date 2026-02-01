@@ -42,6 +42,14 @@ const ICONS = {
       <path d="M12 7.5h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
     </svg>
   `,
+  refresh: `
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+      <path d="M20 12a8 8 0 1 1-2.34-5.66"
+            stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M20 4v6h-6"
+            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `,
 };
 
 export function Icon(name, className = "icon") {

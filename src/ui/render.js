@@ -9,7 +9,6 @@ import {
   PrimaryButton,
 } from "./templates.js";
 
-
 export function renderApp(viewRoot, state, actions) {
   if (!viewRoot.__hb) {
     viewRoot.__hb = createShell(viewRoot, state, actions);
@@ -31,9 +30,14 @@ export function renderApp(viewRoot, state, actions) {
 
   showMain(ui);
 
+  // update search value
   if (ui.searchInput && ui.searchInput.value !== (state.search || "")) {
     ui.searchInput.value = state.search || "";
   }
+
+  // refresh spinner state
+  ui.refreshBtn?.classList.toggle("is-spinning", !!state.refreshing);
+  if (ui.refreshBtn) ui.refreshBtn.disabled = !!state.refreshing || !!state.busy;
 
   const listKey = buildListKey(state.filteredGroups, state.connected, state.busy);
   if (ui.lastListKey !== listKey) {
@@ -54,21 +58,26 @@ function createShell(viewRoot, state, actions) {
 
   headerSlot.appendChild(Header({ phase: state.phase, progress: state.progress }));
 
-  const { wrap: searchWrap, input: searchInput } = SearchBar({ value: state.search });
+  const { wrap: searchWrap, input: searchInput, refreshBtn } = SearchBar({
+    value: state.search,
+    refreshing: !!state.refreshing,
+  });
+
   on(searchInput, "input", (e) => actions.setSearchDebounced(e.target.value));
+  refreshBtn.addEventListener("click", actions.refreshConnections);
 
   const listSlot = el("div", "slot slot--list");
 
-  // ✅ Minimal footer: only “Как это работает?”
+  // footer (оставляем твой минимальный вариант)
   const footer = el("div", "footer");
-    const how = el("a", "footer__how", {
-    text: "Как это работает?",
-  });
-  how.href = actions.howItWorksUrl;
-  how.target = "_blank";
-  how.rel = "noopener noreferrer";
+  if (actions.howItWorksUrl) {
+    const how = el("a", "footer__how", { text: "Как это работает?" });
+    how.href = actions.howItWorksUrl;
+    how.target = "_blank";
+    how.rel = "noopener noreferrer";
+    footer.appendChild(how);
+  }
 
-  footer.appendChild(how);
   section.appendChild(searchWrap);
   section.appendChild(listSlot);
   content.appendChild(section);
@@ -89,6 +98,7 @@ function createShell(viewRoot, state, actions) {
     section,
     searchWrap,
     searchInput,
+    refreshBtn,
     listSlot,
     overlaySlot,
     lastListKey: "",

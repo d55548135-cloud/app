@@ -1,22 +1,13 @@
 import { el } from "./dom.js";
 import { Icon } from "./icons.js";
 
-/**
- * Настройка порогов для подсветки этапов.
- * Подбери под свой UX. Сейчас:
- * 0..29  -> шаг 1
- * 30..59 -> шаг 2
- * 60..89 -> шаг 3
- * 90..100-> шаг 4
- */
-const STEP_THRESHOLDS = [0, 30, 60, 90, 101];
+const THRESHOLDS = { step2: 55, step3: 78, step4: 94 };
 
 function percentToVisualStep(percent) {
   const p = Number.isFinite(percent) ? percent : 0;
-  // возвращаем 1..4
-  if (p >= STEP_THRESHOLDS[3]) return 4; // >= 90
-  if (p >= STEP_THRESHOLDS[2]) return 3; // >= 60
-  if (p >= STEP_THRESHOLDS[1]) return 2; // >= 30
+  if (p >= THRESHOLDS.step4) return 4;
+  if (p >= THRESHOLDS.step3) return 3;
+  if (p >= THRESHOLDS.step2) return 2;
   return 1;
 }
 
@@ -39,8 +30,6 @@ export function Header({ phase, progress }) {
   top.appendChild(subtitle);
 
   const percent = Number.isFinite(progress?.percent) ? progress.percent : 0;
-
-  // ✅ ВАЖНО: визуальный шаг считается от процента
   const visualStep = phase === "connecting" ? percentToVisualStep(percent) : 0;
 
   const steps = Stepper({ phase, step: visualStep });
@@ -59,8 +48,6 @@ export function Stepper({ phase, step }) {
 
   labels.forEach((label, i) => {
     const idx = i + 1;
-
-    // ✅ active — когда “дошли” прогрессом до этого этапа
     const active = phase === "connecting" && step >= idx;
 
     const item = el("div", `stepper__item ${active ? "is-active" : ""}`);
@@ -95,16 +82,34 @@ export function ProgressBar({ phase, percent }) {
   return wrap;
 }
 
-export function SearchBar({ value }) {
-  const wrap = el("div", "search");
-  const input = el("input", "search__input", {
+/**
+ * ✅ SearchBar with refresh icon button
+ * returns: { wrap, input, refreshBtn }
+ */
+export function SearchBar({ value, refreshing = false }) {
+  const wrap = el("div", "searchbar");
+
+  const input = el("input", "searchbar__input", {
     type: "search",
     placeholder: "Поиск по сообществам…",
     value: value || "",
     "aria-label": "Поиск по сообществам",
   });
+
+  const btn = el("button", `searchbar__refresh ${refreshing ? "is-spinning" : ""}`, {
+    type: "button",
+    "aria-label": "Обновить список",
+  });
+
+  // SVG refresh
+  btn.appendChild(Icon("refresh", "icon icon--refresh"));
+
+  if (refreshing) btn.disabled = true;
+
   wrap.appendChild(input);
-  return { wrap, input };
+  wrap.appendChild(btn);
+
+  return { wrap, input, refreshBtn: btn };
 }
 
 export function GroupCard({ group, isConnected, isBusy }) {
@@ -186,8 +191,4 @@ export function ErrorState({ title, text }) {
 
 export function PrimaryButton({ label }) {
   return el("button", "btn btn--primary", { type: "button", text: label });
-}
-
-export function SecondaryButton({ label }) {
-  return el("button", "btn btn--secondary", { type: "button", text: label });
 }

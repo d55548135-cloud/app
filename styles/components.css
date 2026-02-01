@@ -563,3 +563,66 @@ button{
 .modal-sheet{
   background: color-mix(in srgb, var(--surface) 94%, transparent);
 }
+
+
+/* ===== Search + refresh control ===== */
+.searchbar{
+  display: grid;
+  grid-template-columns: 1fr 44px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.searchbar__input{
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  color: var(--text);
+  outline: none;
+}
+
+.searchbar__input::placeholder{
+  color: color-mix(in srgb, var(--muted) 92%, white);
+}
+
+.searchbar__refresh{
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  color: color-mix(in srgb, var(--text) 88%, white);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: transform 140ms ease, background 160ms ease;
+}
+
+.searchbar__refresh:hover{
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+}
+
+.searchbar__refresh:active{
+  transform: scale(.96);
+}
+
+.searchbar__refresh:disabled{
+  opacity: .55;
+  cursor: default;
+}
+
+/* spin animation while refreshing */
+.searchbar__refresh.is-spinning svg{
+  animation: hb-spin 900ms linear infinite;
+}
+
+@keyframes hb-spin{
+  to { transform: rotate(360deg); }
+}
