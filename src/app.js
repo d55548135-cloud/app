@@ -57,15 +57,6 @@ export async function initApp() {
   try {
     await vkInit();
 
-    const donutActive = await checkDonut({
-      ownerId: -CONFIG.BOT_GROUP_ID,
-    });
-
-    store.setState({
-      donutActive,
-      donutCheckedAt: Date.now(),
-    });
-
     const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
     store.setState({ connected });
 
