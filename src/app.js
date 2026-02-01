@@ -321,15 +321,44 @@ function createProgressEngine(emit) {
   let raf = null;
   let running = false;
 
+  // текущие (то, что видит UI)
   let percent = 0;
+  let shownStep = 1;
+  let shownLabel = "Начинаю…";
+
+  // “цель” (то, что приходит из connectFlow)
+  let desiredStep = 1;
+  let desiredLabel = "Начинаю…";
   let cap = 25;
-  let step = 1;
-  let label = "Начинаю…";
 
   const speed = 22;
   const maxBeforeFinish = 97;
 
+  // ✅ Пороги: когда можно зажигать следующий шаг
+  // (можешь подогнать числа под свой вкус)
+  const STEP_MIN_PERCENT = {
+    1: 0,   // Доступ
+    2: 55,  // Чат-бот
+    3: 78,  // Связь
+    4: 94,  // Готово
+  };
+
   let last = performance.now();
+
+  function maybeCommitStep() {
+    // если целевой шаг выше — зажигаем его только когда % дошёл до порога
+    if (desiredStep > shownStep) {
+      const minP = STEP_MIN_PERCENT[desiredStep] ?? 0;
+      if (percent >= minP - 0.5) {
+        shownStep = desiredStep;
+        shownLabel = desiredLabel;
+      }
+    } else {
+      // если шаг не “вперёд”, обновляем label сразу (без ожиданий)
+      shownStep = desiredStep;
+      shownLabel = desiredLabel;
+    }
+  }
 
   function loop(now) {
     if (!running) return;
@@ -345,7 +374,17 @@ function createProgressEngine(emit) {
       percent = Math.min(percent, target);
     }
 
-    emit({ progress: { step, label, percent: Math.round(percent) } });
+    // ✅ синхронизация: шаг не опережает проценты
+    maybeCommitStep();
+
+    emit({
+      progress: {
+        step: shownStep,
+        label: shownLabel,
+        percent: Math.round(percent),
+      },
+    });
+
     raf = requestAnimationFrame(loop);
   }
 
@@ -360,14 +399,25 @@ function createProgressEngine(emit) {
       if (raf) cancelAnimationFrame(raf);
       raf = null;
     },
+
     setStep(nextStep, nextLabel, nextCap) {
-      step = nextStep;
-      label = nextLabel;
-      if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap);
-      else cap = Math.max(cap, 30);
+      desiredStep = Number(nextStep) || 1;
+      desiredLabel = nextLabel || "";
+
+      // ✅ кап не должен быть ниже порога шага,
+      // иначе шаг никогда не “дождётся” процентов
+      const minCap = STEP_MIN_PERCENT[desiredStep] ?? 0;
+
+      if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap, minCap);
+      else cap = Math.max(cap, minCap);
     },
+
     finishTo100(onDone) {
       this.stop();
+
+      // перед финишем гарантируем, что “Готово” не включится раньше 94%
+      desiredStep = 4;
+      desiredLabel = "Готово";
 
       const start = percent;
       const duration = 1400;
@@ -376,9 +426,17 @@ function createProgressEngine(emit) {
       const finishTick = (now) => {
         const t = Math.min(1, (now - startTime) / duration);
         const eased = 1 - Math.pow(1 - t, 4);
-        const value = start + (100 - start) * eased;
+        percent = start + (100 - start) * eased;
 
-        emit({ progress: { step: 4, label: "Готово", percent: Math.round(value) } });
+        maybeCommitStep();
+
+        emit({
+          progress: {
+            step: shownStep,
+            label: shownLabel,
+            percent: Math.round(percent),
+          },
+        });
 
         if (t < 1) requestAnimationFrame(finishTick);
         else onDone?.();
@@ -388,3 +446,4 @@ function createProgressEngine(emit) {
     },
   };
 }
+
