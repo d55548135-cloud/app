@@ -1,4 +1,5 @@
 import { vkCall } from "../api/vk.js";
+import { CONFIG } from "../config.js";
 
 export async function checkDonut({ ownerId }) {
   // ownerId — ID сообщества HubBot (с минусом)
