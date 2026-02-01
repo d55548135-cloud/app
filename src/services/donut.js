@@ -5,22 +5,15 @@ export async function checkDonut({ userToken, groupId }) {
   const ownerId = -Math.abs(groupId);
 
   try {
-    const res = await vkCall("donut.isDon", {
+    const isDon = await vkCall("donut.isDon", {
       owner_id: ownerId,
       v: CONFIG.VK_API_VERSION,
       access_token: userToken, // ✅ ЯВНО user token
     });
 
     if (CONFIG.DEBUG) {
-      console.warn("donut.isDon:", res);
+      console.warn("donut.isDon:", isDon);
     }
-
-    // Обычно ответ: { response: { is_don: 1 } } или { is_don: 1 } — зависит от vkCall
-    const isDon =
-      res?.is_don ??
-      res?.response?.is_don ??
-      res?.response ??
-      0;
 
     return Number(isDon) === 1;
   } catch (e) {
