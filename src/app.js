@@ -124,12 +124,18 @@ const actions = {
   }, 120),
 
   openChat() {
-    const link = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
+    const url = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
     try {
-      top.location.href = link;
-    } catch {
-      window.open(link, "_self");
-    }
+      if (window.vkBridge?.send) {
+        window.vkBridge.send("VKWebAppOpenURL", {
+          url,
+        });
+        return;
+      }
+    } catch {}
+
+    // fallback для браузеров
+    window.open(url, "_blank", "noopener,noreferrer");
   },
 
   async onGroupClick(groupId) {
