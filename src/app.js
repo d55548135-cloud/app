@@ -70,12 +70,20 @@ export async function initApp() {
     store.setState({ connected });
 
     const userToken = await vkGetUserToken(CONFIG.APP_ID, CONFIG.USER_SCOPE);
+
+    const donutActive = await checkDonut({
+      userToken,
+      groupId: CONFIG.BOT_GROUP_ID,
+    });
+
     const groups = await vkGroupsGetAdmin(userToken, CONFIG.VK_API_VERSION);
 
     store.setState({
       phase: "ready",
       groups,
       filteredGroups: groups,
+      donutActive,
+      donutCheckedAt: Date.now(),
       error: null,
       busy: false,
       refreshing: false,
