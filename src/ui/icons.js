@@ -44,16 +44,11 @@ const ICONS = {
   `,
   refresh: `
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-      <!-- дуга: начинается справа сверху и идёт почти кругом, но НЕ доходит до стрелки -->
       <path
-        d="M20 12a8 8 0 1 1-4.9-7.4"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-      />
-      <!-- стрелка отдельно (в правом верхнем углу), не соединена с дугой -->
-      <path
-        d="M20 4.8v5.2h-5.2"
+        d="M21 3v5m0 0h-5m5 0l-3-2.70832C16.4077 3.86656 14.3051 3 12 3
+           7.02944 3 3 7.02944 3 12
+           3 16.9706 7.02944 21 12 21
+           16.2832 21 19.8675 18.008 20.777 14"
         stroke="currentColor"
         stroke-width="2"
         stroke-linecap="round"
