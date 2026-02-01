@@ -44,10 +44,21 @@ const ICONS = {
   `,
   refresh: `
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-      <path d="M20 12a8 8 0 1 1-2.34-5.66"
-            stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M20 4v6h-6"
-            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- дуга -->
+      <path
+        d="M20 12a8 8 0 1 1-2.02-5.33"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+      />
+      <!-- стрелка -->
+      <path
+        d="M20 5.5v5.2h-5.2"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </svg>
   `,
 };
