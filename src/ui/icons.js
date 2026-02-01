@@ -56,6 +56,18 @@ const ICONS = {
       />
     </svg>
   `,
+  donutBadge: `
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+      <!-- “монетка/донат” -->
+      <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M8.5 12a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0Z"
+            stroke="currentColor" stroke-width="2"/>
+      <!-- маленькая “искра” сверху справа -->
+      <path d="M16.8 6.2l.6-1.4l.6 1.4l1.4.6l-1.4.6l-.6 1.4l-.6-1.4l-1.4-.6l1.4-.6Z"
+            fill="currentColor"/>
+    </svg>
+  `,
 
 };
 

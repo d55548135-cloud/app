@@ -11,10 +11,6 @@ export async function checkDonut({ userToken, groupId }) {
       access_token: userToken, // ✅ ЯВНО user token
     });
 
-    if (CONFIG.DEBUG) {
-      console.warn("donut.isDon:", isDon);
-    }
-
     return Number(isDon) === 1;
   } catch (e) {
     if (CONFIG.DEBUG) {

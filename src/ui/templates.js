@@ -1,8 +1,11 @@
 import { el } from "./dom.js";
 import { Icon } from "./icons.js";
 
-export function Header({ phase, progress }) {
+export function Header({ phase, progress, donutActive = false }) {
   const wrap = el("div", "header");
+
+  // top row (title + status chip)
+  const topRow = el("div", "header__row");
 
   const top = el("div", "header__top");
   const title = el("div", "header__title", {
@@ -19,16 +22,37 @@ export function Header({ phase, progress }) {
   top.appendChild(title);
   top.appendChild(subtitle);
 
-  // ✅ ВАЖНО: шаг — по факту, не по процентам
+  // ✅ Subscription chip (right top)
+  const chip = SubscriptionChip({ active: !!donutActive });
+
+  topRow.appendChild(top);
+  topRow.appendChild(chip);
+
   const step = phase === "connecting" ? (Number(progress?.step) || 1) : 0;
   const percent = Number.isFinite(progress?.percent) ? progress.percent : 0;
 
   const steps = Stepper({ phase, step });
   const bar = ProgressBar({ phase, percent });
 
-  wrap.appendChild(top);
+  wrap.appendChild(topRow);
   wrap.appendChild(steps);
   wrap.appendChild(bar);
+
+  return wrap;
+}
+
+function SubscriptionChip({ active }) {
+  const wrap = el("div", `subchip ${active ? "subchip--on" : "subchip--off"}`);
+
+  const ico = el("span", "subchip__ico");
+  ico.appendChild(Icon("donutBadge", "icon icon--sub"));
+
+  const text = el("span", "subchip__text", {
+    text: active ? "Подписка активна" : "Нет подписки",
+  });
+
+  wrap.appendChild(ico);
+  wrap.appendChild(text);
 
   return wrap;
 }

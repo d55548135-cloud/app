@@ -114,3 +114,61 @@ body{
   transform: scale(.97);
 }
 
+/* header layout row: title left, chip right */
+.header__row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 12px;
+}
+
+/* subscription chip */
+.subchip{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(10px);
+  user-select:none;
+  flex: 0 0 auto;
+}
+
+.subchip__ico{
+  width: 18px;
+  height: 18px;
+  display:grid;
+  place-items:center;
+}
+
+.subchip__text{
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* active */
+.subchip--on{
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 12%, transparent);
+}
+.subchip--on .subchip__text{
+  color: color-mix(in srgb, var(--brand) 72%, var(--text));
+}
+
+/* inactive */
+.subchip--off{
+  border-color: color-mix(in srgb, #E6C65A 35%, var(--border));
+}
+.subchip--off .subchip__text{
+  color: color-mix(in srgb, #E6C65A 70%, var(--text));
+}
+
+/* make svg sit perfectly */
+.subchip svg{ display:block; }
+

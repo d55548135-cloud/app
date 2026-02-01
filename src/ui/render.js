@@ -56,8 +56,9 @@ function createShell(viewRoot, state, actions) {
   const content = el("div", "content");
   const section = el("div", "section");
 
-  headerSlot.appendChild(Header({ phase: state.phase, progress: state.progress }));
-
+  ui.headerSlot.appendChild(
+    Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
+  );
   const { wrap: searchWrap, input: searchInput, refreshBtn } = SearchBar({
     value: state.search,
     refreshing: !!state.refreshing,
@@ -107,7 +108,9 @@ function createShell(viewRoot, state, actions) {
 
 function updateHeader(ui, state) {
   clear(ui.headerSlot);
-  ui.headerSlot.appendChild(Header({ phase: state.phase, progress: state.progress }));
+    ui.headerSlot.appendChild(
+    Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
+  );
 }
 
 function showLoading(ui) {
