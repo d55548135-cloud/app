@@ -12,7 +12,7 @@ export async function checkDonut({ userToken, groupId }) {
     });
 
     if (CONFIG.DEBUG) {
-      console.debug("donut.isDon:", res);
+      console.warn("donut.isDon:", res);
     }
 
     // Обычно ответ: { response: { is_don: 1 } } или { is_don: 1 } — зависит от vkCall
