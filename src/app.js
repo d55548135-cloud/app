@@ -126,25 +126,25 @@ const actions = {
   async openChat() {
     const url = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
 
-    // 1) пробуем через VK Bridge (если поддерживается в этом окружении)
+    // 1) Prefer VK Bridge (native)
     try {
       if (window.vkBridge?.send) {
         await window.vkBridge.send("VKWebAppOpenURL", { url });
         return;
       }
     } catch (e) {
-      // тихо падаем в fallback
-      console.warn("VKWebAppOpenURL failed, fallback to window.open", e);
+      console.warn("VKWebAppOpenURL failed, fallback to tab", e);
     }
 
-    // 2) fallback: новая вкладка (не убивает мини-апп)
-    const w = window.open(url, "_blank", "noopener,noreferrer");
-    if (!w) {
-      // если попап-блокер — хотя бы откроем в текущем (редко, но лучше чем ничего)
-      try {
-        window.location.href = url;
-      } catch {}
-    }
+    // 2) Hard fallback: open as top-level tab
+    // Important: use noopener,noreferrer to avoid window.opener and iframe weirdness
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   },
 
 
