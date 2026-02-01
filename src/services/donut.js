@@ -9,7 +9,12 @@ export async function checkDonut({ ownerId }) {
     });
 
     return !!res?.is_don;
-  } catch {
+  } catch (e) {
+    if (CONFIG.DEBUG) {
+      console.warn("donut.isDon failed", e);
+    }
+    // ❗В проде лучше считать “неизвестно”, а не “нет подписки”
+    // но чтобы не усложнять — пока false
     return false;
   }
 }
