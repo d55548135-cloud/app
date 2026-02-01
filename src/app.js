@@ -56,6 +56,15 @@ export async function initApp() {
   try {
     await vkInit();
 
+    const donutActive = await checkDonut({
+      ownerId: -CONFIG.BOT_GROUP_ID,
+    });
+
+    store.setState({
+      donutActive,
+      donutCheckedAt: Date.now(),
+    });
+
     const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
     store.setState({ connected });
 
@@ -152,8 +161,39 @@ const actions = {
     a.remove();
   },
 
+  openDonut() {
+    const url = `https://vk.com/donut/hubbot`;
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  },
+
+
   async onGroupClick(groupId) {
     const state = store.getState();
+
+    if (!state.donutActive) {
+    window.__hubbot_modal_open?.({
+      title: "Подключение по подписке",
+      subtitle:
+        "Подписка HubBot позволяет подключить до 2 сообществ и управлять ими через чат-бота.",
+      actions: [
+        {
+          id: "donut",
+          label: "Оформить подписку VK Donut",
+          type: "primary",
+          onClick: () => actions.openDonut(),
+        },
+      ],
+    });
+    return;
+  }
+
     if (state.busy || state.refreshing) return;
 
     store.setState({ selectedGroupId: groupId });
@@ -322,7 +362,7 @@ function createProgressEngine(emit) {
   let running = false;
 
   let percent = 0;
-  let cap = 25;
+  let cap = 20;
 
   // ✅ “логически доступные” шаги (могут стать 4 быстро)
   let desiredMaxStep = 1;
