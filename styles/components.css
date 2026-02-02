@@ -538,27 +538,6 @@ button{
 }
 .icon--info svg{ display:block; }
 
-.badge--lock{
-  opacity: .85;
-}
-
-.badge--lock .icon{
-  opacity: .9;
-}
-
-.card[data-locked="1"]{
-  cursor: pointer;
-}
-
-.card[data-locked="1"] .card__meta{
-  opacity: .85;
-}
-
-.card[data-locked="1"]:hover{
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-}
-
-
 .successModal__noteTitle{
   font-weight: 850;
   letter-spacing: -0.01em;
