@@ -179,23 +179,6 @@ const actions = {
   async onGroupClick(groupId) {
     const state = store.getState();
 
-    if (!state.donutActive) {
-    window.__hubbot_modal_open?.({
-      title: "Подключение по подписке",
-      subtitle:
-        "Подписка HubBot позволяет подключить до 2 сообществ и управлять ими через чат-бота.",
-      actions: [
-        {
-          id: "donut",
-          label: "Оформить подписку VK Donut",
-          type: "primary",
-          onClick: () => actions.openDonut(),
-        },
-      ],
-    });
-    return;
-  }
-
     if (state.busy || state.refreshing) return;
 
     store.setState({ selectedGroupId: groupId });
@@ -215,6 +198,23 @@ const actions = {
             label: "Перейти в чат управления Hubby",
             type: "primary",
             onClick: () => actions.openChat(),
+          },
+        ],
+      });
+      return;
+    }
+
+    if (!state.donutActive) {
+      window.__hubbot_modal_open?.({
+        title: "Подключение по подписке",
+        subtitle:
+          "Подписка HubBot позволяет подключить до 2 сообществ и управлять ими через чат-бота.",
+        actions: [
+          {
+            id: "donut",
+            label: "Оформить подписку VK Donut",
+            type: "primary",
+            onClick: () => actions.openDonut(),
           },
         ],
       });
