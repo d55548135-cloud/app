@@ -79,45 +79,46 @@ const ICONS = {
         c2.4,0,4.8,0,8-0.8c12,8,26.4,12,42.4,12c20,0,37.6-7.2,52-19.2c0.8,0,1.6,0,3.2,0c36.8,0,68-24.8,76.8-59.2
         c26.4-4.8,47.2-28,47.2-56C427.2,316.8,426.4,312,425.6,307.2z"/>
 
-      <!-- sprinkles (oval, readable at 18–20px) -->
+      <!-- BIGGER sprinkles (readable at 18–20px badge) -->
 
-      <ellipse cx="322.4" cy="108" rx="16" ry="7" fill="#FFCE00"
+      <ellipse cx="322.4" cy="108" rx="22" ry="9" fill="#FFCE00"
                transform="rotate(-18 322.4 108)"/>
 
-      <ellipse cx="368" cy="337.6" rx="17" ry="7.5" fill="#FFCE00"
+      <ellipse cx="368" cy="337.6" rx="23" ry="9.5" fill="#FFCE00"
                transform="rotate(22 368 337.6)"/>
 
-      <ellipse cx="241.6" cy="344.8" rx="15" ry="6.5" fill="#91EDEA"
+      <ellipse cx="241.6" cy="344.8" rx="20" ry="8.5" fill="#91EDEA"
                transform="rotate(-12 241.6 344.8)"/>
 
-      <ellipse cx="375.2" cy="172.8" rx="14" ry="6" fill="#EFD27F"
+      <ellipse cx="375.2" cy="172.8" rx="19" ry="8" fill="#EFD27F"
                transform="rotate(28 375.2 172.8)"/>
 
-      <ellipse cx="326.4" cy="177.6" rx="13" ry="6" fill="#91EDEA"
+      <ellipse cx="326.4" cy="177.6" rx="18" ry="8" fill="#91EDEA"
                transform="rotate(-32 326.4 177.6)"/>
 
-      <ellipse cx="246.4" cy="80.8" rx="14" ry="6.5" fill="#EFD27F"
+      <ellipse cx="246.4" cy="80.8" rx="19" ry="8.5" fill="#EFD27F"
                transform="rotate(15 246.4 80.8)"/>
 
-      <!-- left side (чтобы не было пусто) -->
+      <!-- left side (важно для баланса) -->
 
-      <ellipse cx="97" cy="304.8" rx="15" ry="6.5" fill="#FFCE00"
+      <ellipse cx="97" cy="304.8" rx="20" ry="8.5" fill="#FFCE00"
                transform="rotate(-25 97 304.8)"/>
 
-      <ellipse cx="115" cy="241.8" rx="14" ry="6" fill="#91EDEA"
+      <ellipse cx="115" cy="241.8" rx="19" ry="8" fill="#91EDEA"
                transform="rotate(18 115 241.8)"/>
 
-      <ellipse cx="98" cy="182.8" rx="14" ry="6" fill="#EFD27F"
+      <ellipse cx="98" cy="182.8" rx="19" ry="8" fill="#EFD27F"
                transform="rotate(-10 98 182.8)"/>
 
-      <ellipse cx="151.6" cy="375.8" rx="16" ry="7" fill="#91EDEA"
+      <ellipse cx="151.6" cy="375.8" rx="21" ry="9" fill="#91EDEA"
                transform="rotate(30 151.6 375.8)"/>
 
-      <ellipse cx="160.4" cy="124" rx="17" ry="7" fill="#FFCE00"
+      <ellipse cx="160.4" cy="124" rx="22" ry="9" fill="#FFCE00"
                transform="rotate(-20 160.4 124)"/>
 
-      <ellipse cx="202.6" cy="395.8" rx="15" ry="6.5" fill="#91EDEA"
+      <ellipse cx="202.6" cy="395.8" rx="20" ry="8.5" fill="#91EDEA"
                transform="rotate(12 202.6 395.8)"/>
+
 
 
       <!-- ✅ HOLE (reliable): paint it with surface color via CSS variable -->
