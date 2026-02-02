@@ -184,14 +184,7 @@ body{
 
 .subchip__ico svg{
   display: block;       /* ✅ */
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
-/* ✅ ВАЖНО: если у тебя где-то есть .icon svg { fill:none; } или подобное — это перекрывает глазурь
-   Поэтому делаем жёсткий override только для donut */
-.donut-svg,
-.donut-svg *{
-  fill: initial !important;
-  stroke: none !important;
-}
