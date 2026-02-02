@@ -538,6 +538,32 @@ button{
 }
 .icon--info svg{ display:block; }
 
+/* lock badge look (premium, not aggressive) */
+.badge--lock{
+  background: color-mix(in srgb, #E6C65A 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, #E6C65A 40%, var(--border));
+  box-shadow: 0 0 0 4px color-mix(in srgb, #E6C65A 10%, transparent);
+}
+
+.icon--lock{
+  color: color-mix(in srgb, #E6C65A 78%, var(--text));
+}
+
+/* subtle shake on lock icon */
+@keyframes hb-lock-shake{
+  0%   { transform: translateX(0) rotate(0); }
+  20%  { transform: translateX(-2px) rotate(-2deg); }
+  40%  { transform: translateX(2px) rotate(2deg); }
+  60%  { transform: translateX(-1px) rotate(-1deg); }
+  80%  { transform: translateX(1px) rotate(1deg); }
+  100% { transform: translateX(0) rotate(0); }
+}
+
+.badge.is-shaking{
+  animation: hb-lock-shake 260ms ease-in-out;
+}
+
+
 .successModal__noteTitle{
   font-weight: 850;
   letter-spacing: -0.01em;

@@ -39,7 +39,12 @@ export function renderApp(viewRoot, state, actions) {
   ui.refreshBtn?.classList.toggle("is-spinning", !!state.refreshing);
   if (ui.refreshBtn) ui.refreshBtn.disabled = !!state.refreshing || !!state.busy;
 
-  const listKey = buildListKey(state.filteredGroups, state.connected, state.busy);
+  const listKey = buildListKey(
+    state.filteredGroups,
+    state.connected,
+    state.busy,
+    !!state.donutActive
+  );
   if (ui.lastListKey !== listKey) {
     ui.lastListKey = listKey;
     renderList(ui, state, actions);
@@ -169,16 +174,35 @@ function renderList(ui, state, actions) {
 
   groups.forEach((g) => {
     const isConnected = state.connected.some((x) => x.id === g.id);
-    const card = GroupCard({ group: g, isConnected, isBusy: state.busy });
-    card.addEventListener("click", () => actions.onGroupClick(g.id));
+    const card = GroupCard({
+      group: g,
+      isConnected,
+      isBusy: state.busy,
+      donutActive: !!state.donutActive,
+    });
+    card.addEventListener("click", () => {
+      // ✅ если карточка “залочена” — мягкий shake замка
+      if (card.dataset.locked === "1") {
+        const badge = card.querySelector(".badge");
+        if (badge) {
+          badge.classList.remove("is-shaking");
+          // reflow для перезапуска анимации
+          // eslint-disable-next-line no-unused-expressions
+          badge.offsetWidth;
+          badge.classList.add("is-shaking");
+        }
+      }
+
+      actions.onGroupClick(g.id);
+    });
     list.appendChild(card);
   });
 
   ui.listSlot.appendChild(list);
 }
 
-function buildListKey(groups, connected, busy) {
+function buildListKey(groups, connected, busy, donutActive) {
   const g = (groups || []).map((x) => x.id).join(",");
   const c = (connected || []).map((x) => x.id).join(",");
-  return `${g}|${c}|${busy ? 1 : 0}`;
+  return `${g}|${c}|${busy ? 1 : 0}|${donutActive ? 1 : 0}`;
 }

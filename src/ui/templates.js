@@ -135,7 +135,7 @@ export function SearchBar({ value, refreshing = false }) {
   return { wrap, input, refreshBtn: btn };
 }
 
-export function GroupCard({ group, isConnected, isBusy }) {
+export function GroupCard({ group, isConnected, isBusy, donutActive }) {
   const card = el("button", `card ${isConnected ? "card--connected" : ""}`, {
     type: "button",
   });
@@ -150,9 +150,13 @@ export function GroupCard({ group, isConnected, isBusy }) {
 
   const info = el("div", "card__info");
   const name = el("div", "card__name", { text: group.name });
-  const meta = el("div", "card__meta", {
-    text: isConnected ? "Подключено" : "Нажмите, чтобы подключить",
-  });
+
+  // ✅ текст под названием
+  let metaText = "Нажмите, чтобы подключить";
+  if (isConnected) metaText = "Подключено";
+  else if (!donutActive) metaText = "Доступно с подпиской";
+
+  const meta = el("div", "card__meta", { text: metaText });
 
   info.appendChild(name);
   info.appendChild(meta);
@@ -162,16 +166,33 @@ export function GroupCard({ group, isConnected, isBusy }) {
 
   const right = el("div", "card__right");
 
-  const badge = el("div", `badge ${isConnected ? "badge--ok" : "badge--go"}`);
-  const icon = isConnected
-    ? Icon("check", "icon icon--badge")
-    : Icon("chevronRight", "icon icon--badge");
-  badge.appendChild(icon);
+  // ✅ badge: connected -> check
+  // ✅ no subscription + not connected -> lock
+  // ✅ else -> chevron
+  const badge = el(
+    "div",
+    `badge ${
+      isConnected ? "badge--ok" : (!donutActive ? "badge--lock" : "badge--go")
+    }`
+  );
 
+  const icon =
+    isConnected
+      ? Icon("check", "icon icon--badge")
+      : (!donutActive ? Icon("lock", "icon icon--badge icon--lock") : Icon("chevronRight", "icon icon--badge"));
+
+  badge.appendChild(icon);
   right.appendChild(badge);
 
   card.appendChild(left);
   card.appendChild(right);
+
+  // ✅ пометка для shake-анимации
+  if (!isConnected && !donutActive) {
+    card.dataset.locked = "1";
+  } else {
+    card.dataset.locked = "0";
+  }
 
   return card;
 }

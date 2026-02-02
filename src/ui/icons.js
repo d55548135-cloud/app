@@ -126,6 +126,17 @@ const ICONS = {
     </svg>
   `,
 
+  lock: `
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+      <path d="M7.5 11V8.7a4.5 4.5 0 0 1 9 0V11"
+            stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M7.2 11h9.6c1 0 1.8.8 1.8 1.8v6.2c0 1-.8 1.8-1.8 1.8H7.2c-1 0-1.8-.8-1.8-1.8v-6.2c0-1 .8-1.8 1.8-1.8Z"
+            stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M12 15.2v2.2"
+            stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+  `,
+
 };
 
 export function Icon(name, className = "icon") {
