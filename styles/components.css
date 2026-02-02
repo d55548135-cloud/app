@@ -401,8 +401,6 @@ button{
   display:flex;
   align-items:center;
   justify-content:center;
-  width: 18px;
-  height: 18px;
 }
 
 .icon--badge svg{
