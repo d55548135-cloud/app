@@ -48,7 +48,7 @@ function SubscriptionChip({ active }) {
   ico.appendChild(Icon("donutBadge", "icon icon--sub"));
 
   const text = el("span", "subchip__text", {
-    text: active ? "Подписка активна" : "Нет подписки",
+    text: active ? "Подписка подключена" : "Подписка не подключена",
   });
 
   wrap.appendChild(ico);

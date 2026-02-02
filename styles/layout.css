@@ -152,22 +152,28 @@ body{
   white-space: nowrap;
 }
 
-/* active */
+/* ACTIVE: premium доступ есть */
 .subchip--on{
-  border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 12%, transparent);
+  border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
+  background: color-mix(in srgb, var(--brand) 12%, var(--surface));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 14%, transparent);
 }
 .subchip--on .subchip__text{
-  color: color-mix(in srgb, var(--brand) 72%, var(--text));
+  color: color-mix(in srgb, var(--brand) 80%, var(--text));
 }
 
-/* inactive */
+/* INACTIVE: не ошибка, а “премиум оффер” */
 .subchip--off{
-  border-color: color-mix(in srgb, #E6C65A 35%, var(--border));
+  --gold: #E6C65A;
+
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+  background: color-mix(in srgb, var(--gold) 10%, var(--surface));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 10%, transparent);
 }
 .subchip--off .subchip__text{
-  color: color-mix(in srgb, #E6C65A 70%, var(--text));
+  color: color-mix(in srgb, var(--gold) 85%, var(--text));
 }
+
 
 /* make svg sit perfectly */
 .subchip svg{ display:block; }
