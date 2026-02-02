@@ -90,8 +90,8 @@ const ICONS = {
       <circle fill="#FFCE00" cx="97" cy="304.8" r="15"/>
       <circle fill="#91EDEA" cx="115" cy="268.8" r="15"/>
       <circle fill="#EFD27F" cx="98" cy="182.8" r="15"/>
-      <circle fill="#91EDEA" cx="199.6" cy="375.8" r="16">
-      <circle fill="#FFCE00" cx="160.4" cy="124" r="18"></circle>
+      <circle fill="#91EDEA" cx="199.6" cy="375.8" r="16"/>
+      <circle fill="#FFCE00" cx="160.4" cy="124" r="18"/>
 
       <!-- ✅ HOLE (reliable): paint it with surface color via CSS variable -->
       <circle class="donut-hole" cx="242.4" cy="242.4" r="86"/>
