@@ -122,19 +122,64 @@ body{
   gap: 12px;
 }
 
-/* subscription chip */
+/* subscription chip — premium */
 .subchip{
   display:inline-flex;
   align-items:center;
   gap: 8px;
-  padding: 8px 10px;
+
+  padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 82%, transparent);
+
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
   user-select:none;
   flex: 0 0 auto;
+
+  /* базовая “дорогая” глубина */
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.22),
+    0 1px 0 rgba(255,255,255,.06) inset;
 }
+
+/* ACTIVE */
+.subchip--on{
+  border-color: color-mix(in srgb, var(--brand) 26%, var(--border));
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface));
+
+  /* ✅ мягкий glow (blur), а не жёсткий ring */
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.22),
+    0 1px 0 rgba(255,255,255,.06) inset,
+    0 0 18px 2px color-mix(in srgb, var(--brand) 22%, transparent);
+}
+
+.subchip--on .subchip__text{
+  color: color-mix(in srgb, var(--brand) 78%, var(--text));
+}
+
+/* INACTIVE — premium gold, без ощущения “ошибка” */
+.subchip--off{
+  --gold: #E6C65A;
+
+  border-color: color-mix(in srgb, var(--gold) 28%, var(--border));
+  background: color-mix(in srgb, var(--gold) 8%, var(--surface));
+
+  /* ✅ glow ближе и мягче */
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.22),
+    0 1px 0 rgba(255,255,255,.06) inset,
+    0 0 16px 1px color-mix(in srgb, var(--gold) 20%, transparent);
+}
+
+.subchip--off .subchip__text{
+  color: color-mix(in srgb, var(--gold) 82%, var(--text));
+}
+
 
 .subchip__ico{
   width: 18px;
@@ -151,29 +196,6 @@ body{
   line-height: 1;
   white-space: nowrap;
 }
-
-/* ACTIVE: premium доступ есть */
-.subchip--on{
-  border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
-  background: color-mix(in srgb, var(--brand) 12%, var(--surface));
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 14%, transparent);
-}
-.subchip--on .subchip__text{
-  color: color-mix(in srgb, var(--brand) 80%, var(--text));
-}
-
-/* INACTIVE: не ошибка, а “премиум оффер” */
-.subchip--off{
-  --gold: #E6C65A;
-
-  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
-  background: color-mix(in srgb, var(--gold) 10%, var(--surface));
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 10%, transparent);
-}
-.subchip--off .subchip__text{
-  color: color-mix(in srgb, var(--gold) 85%, var(--text));
-}
-
 
 /* make svg sit perfectly */
 .subchip svg{ display:block; }
