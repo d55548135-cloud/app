@@ -188,3 +188,5 @@ body{
   height: 20px;
 }
 
+
+.donut-hole { fill: var(--surface); }
