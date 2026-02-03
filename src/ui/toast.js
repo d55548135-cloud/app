@@ -1,62 +1,67 @@
 import { el } from "./dom.js";
 
-export function mountToast(root, opts = {}) {
+export function mountToast(root) {
   const host = el("div", "toast-host");
   root.appendChild(host);
 
-  const {
-    muteMs = 900,         // 🔇 первые 0.9s после запуска не показываем тосты
-    dedupeMs = 5000,      // 🚫 не повторяем одинаковое за короткое время
-    replace = true,       // ♻️ если новый тост — убираем предыдущий
-  } = opts;
-
-  const bootAt = performance.now();
-  let lastKey = "";
-  let lastAt = 0;
-  let currentItem = null;
+  let current = null;
+  let hideTimer = null;
   let removeTimer = null;
 
-  function killCurrent() {
-    if (!currentItem) return;
-    currentItem.classList.remove("is-in");
-    currentItem.classList.add("is-out");
-    const node = currentItem;
-    currentItem = null;
-
+  function clearTimers() {
+    if (hideTimer) clearTimeout(hideTimer);
     if (removeTimer) clearTimeout(removeTimer);
+    hideTimer = null;
+    removeTimer = null;
+  }
+
+  function removeCurrent(immediate = false) {
+    if (!current) return;
+
+    clearTimers();
+
+    const node = current;
+    current = null;
+
+    if (immediate) {
+      node.remove();
+      return;
+    }
+
+    node.classList.remove("is-in");
+    node.classList.add("is-out");
     removeTimer = setTimeout(() => node.remove(), 220);
   }
 
-  window.__hubbot_toast = (text, type = "info", toastOpts = {}) => {
-    const now = performance.now();
+  window.__hubbot_toast = (text, type = "info") => {
+    // хочешь оставить только error/success — фильтруй тут
+    // const allowed = new Set(["error", "success"]);
+    // if (!allowed.has(type)) return;
 
-    // 🔇 mute on boot (чтобы не всплывало при refresh/init)
-    if (now - bootAt < muteMs && !toastOpts.force) return;
-
-    // 🚫 dedupe одинаковых сообщений
-    const key = `${type}|${text}`;
-    if (key === lastKey && now - lastAt < dedupeMs && !toastOpts.force) return;
-    lastKey = key;
-    lastAt = now;
-
-    // ♻️ replace предыдущего
-    if (replace) killCurrent();
+    // ✅ если тост уже висит — заменяем его красиво
+    if (current) removeCurrent(false);
 
     const item = el("div", `toast toast--${type}`);
     item.appendChild(el("div", "toast__text", { text }));
+
     host.appendChild(item);
-    currentItem = item;
+    current = item;
 
     requestAnimationFrame(() => item.classList.add("is-in"));
 
     const life = type === "error" ? 3200 : 2200;
-    setTimeout(() => {
-      if (item !== currentItem) {
-        // если уже заменили другим — не трогаем
+
+    hideTimer = setTimeout(() => {
+      if (current !== item) return; // на случай, если уже заменили
+      item.classList.remove("is-in");
+      item.classList.add("is-out");
+      removeTimer = setTimeout(() => {
+        if (current === item) current = null;
         item.remove();
-        return;
-      }
-      killCurrent();
+      }, 220);
     }, life);
   };
+
+  // На всякий: если вдруг нужно “снести” тост вручную
+  window.__hubbot_toast_clear = () => removeCurrent(true);
 }
