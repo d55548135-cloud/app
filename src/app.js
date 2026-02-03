@@ -41,7 +41,7 @@ export async function initApp() {
   const toastRoot = document.getElementById("portal-toast");
   const modalRoot = document.getElementById("portal-modal");
 
-  mountToast(toastRoot);
+  mountToast(toastRoot, { muteMs: 900, dedupeMs: 1200, replace: true });
   mountModal(modalRoot);
 
   store.subscribe(() => renderApp(viewRoot, store.getState(), actions));
@@ -96,7 +96,7 @@ export async function initApp() {
   }
 }
 
-async function syncConnectionsFromStorage({ silent = false } = {}) {
+async function syncConnectionsFromStorage({ silent = false, showUpToDate = false } = {}) {
   try {
     const next = await storageLoadConnections(CONFIG.STORAGE_KEY);
     const prev = store.getState().connected;
@@ -108,7 +108,8 @@ async function syncConnectionsFromStorage({ silent = false } = {}) {
       store.setState({ connected: next });
       if (!silent) window.__hubbot_toast?.("Список подключений обновлён", "success");
     } else {
-      if (!silent) window.__hubbot_toast?.("Уже актуально", "success");
+      // ✅ теперь “Уже актуально” показываем только если явно просили
+      if (!silent && showUpToDate) window.__hubbot_toast?.("Уже актуально", "info");
     }
   } catch {
     if (!silent) window.__hubbot_toast?.("Не удалось обновить список", "error");
@@ -125,7 +126,10 @@ const actions = {
     if (state.refreshing || state.busy) return;
 
     store.setState({ refreshing: true });
-    await syncConnectionsFromStorage({ silent });
+
+    // если silent=false (ручное) — можно показать “уже актуально”
+    await syncConnectionsFromStorage({ silent, showUpToDate: !silent });
+
     store.setState({ refreshing: false });
   },
 
