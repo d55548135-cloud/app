@@ -63,7 +63,7 @@ export async function initApp() {
     store.setState({ connected });
 
     const userToken = await vkGetUserToken(CONFIG.APP_ID, CONFIG.USER_SCOPE);
-
+    console.log(userToken)
     const donutActive = await checkDonut({
       userToken,
       groupId: CONFIG.BOT_GROUP_ID,
