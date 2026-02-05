@@ -17,7 +17,7 @@ export async function vkGetUserToken(appId, scope) {
       ),
     { retries: 1, delayMs: 350 }
   );
-
+  console.log(res)
   if (!res?.access_token) throw new Error("Не удалось получить токен пользователя.");
   return res.access_token;
 }
