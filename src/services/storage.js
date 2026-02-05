@@ -30,23 +30,33 @@ export async function storageLoadConnections(storageKey) {
     const [idStr, token] = raw.split(":");
     const id = parseInt(idStr, 10);
     if (!id || !token) return [];
-    return [{ id, token, createdAt: Date.now() }];
+    return [{ id, token, createdAt: Date.now(), enabled: true }];
   }
 
   const parsed = safeJsonParse(raw, []);
   if (!Array.isArray(parsed)) return [];
 
-  // нормализация
+  // нормализация + обратная совместимость
   return parsed
     .map((x) => ({
       id: Number(x?.id),
       token: String(x?.token || ""),
       createdAt: Number(x?.createdAt || Date.now()),
+      enabled: typeof x?.enabled === "boolean" ? x.enabled : true, // ✅ default ON
     }))
     .filter((x) => Number.isFinite(x.id) && x.id > 0 && x.token.length > 5);
 }
 
+
 export async function storageSaveConnections(storageKey, list) {
-  const normalized = (list || []).slice(0, CONFIG.MAX_CONNECTED);
+  const normalized = (list || [])
+    .slice(0, CONFIG.MAX_CONNECTED)
+    .map((x) => ({
+      id: Number(x?.id),
+      token: String(x?.token || ""),
+      createdAt: Number(x?.createdAt || Date.now()),
+      enabled: typeof x?.enabled === "boolean" ? x.enabled : true,
+    }));
+
   await storageSet(storageKey, JSON.stringify(normalized));
 }

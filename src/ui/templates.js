@@ -135,7 +135,7 @@ export function SearchBar({ value, refreshing = false }) {
   return { wrap, input, refreshBtn: btn };
 }
 
-export function GroupCard({ group, isConnected, isBusy, donutActive }) {
+export function GroupCard({ group, isConnected, isBusy, donutActive, enabled = true, onToggle }) {
   const card = el("button", `card ${isConnected ? "card--connected" : ""}`, {
     type: "button",
   });
@@ -151,9 +151,9 @@ export function GroupCard({ group, isConnected, isBusy, donutActive }) {
   const info = el("div", "card__info");
   const name = el("div", "card__name", { text: group.name });
 
-  // ✅ текст под названием
+  // ✅ мета-текст под названием
   let metaText = "Нажмите, чтобы подключить";
-  if (isConnected) metaText = "Подключено";
+  if (isConnected) metaText = enabled ? "Чат-бот активен" : "Чат-бот выключен";
   else if (!donutActive) metaText = "Доступно с подпиской";
 
   const meta = el("div", "card__meta", { text: metaText });
@@ -166,9 +166,32 @@ export function GroupCard({ group, isConnected, isBusy, donutActive }) {
 
   const right = el("div", "card__right");
 
-  // ✅ badge: connected -> check
-  // ✅ no subscription + not connected -> lock
-  // ✅ else -> chevron
+  // ✅ 1) Если подключено — показываем toggle-кнопку
+  if (isConnected) {
+    const toggleBtn = el(
+      "button",
+      `card__toggle ${enabled ? "is-on" : "is-off"}`,
+      {
+        type: "button",
+        "aria-label": enabled ? "Выключить чат-бота" : "Включить чат-бота",
+        title: enabled ? "Выключить" : "Включить",
+      }
+    );
+
+    toggleBtn.appendChild(Icon(enabled ? "toggleOn" : "toggleOff", "icon icon--toggle"));
+
+    // ВАЖНО: не даём клику всплыть в card
+    toggleBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (isBusy) return;
+      onToggle?.(group.id);
+    });
+
+    right.appendChild(toggleBtn);
+  }
+
+  // ✅ 2) Справа бейдж остаётся как “доп. статус/действие”
   const badge = el(
     "div",
     `badge ${
