@@ -173,31 +173,28 @@ function renderList(ui, state, actions) {
   const list = el("div", "list");
 
   groups.forEach((g) => {
-    const conn = state.connected.find((x) => x.id === g.id);
-    const isConnected = !!conn;
-    const enabled = conn ? !!conn.enabled : true;
-
+    const isConnected = state.connected.some((x) => x.id === g.id);
     const card = GroupCard({
       group: g,
       isConnected,
-      enabled,
       isBusy: state.busy,
       donutActive: !!state.donutActive,
-      onToggle: (groupId) => actions.toggleGroupEnabled(groupId), // ✅
     });
-
     card.addEventListener("click", () => {
+      // ✅ если карточка “залочена” — мягкий shake замка
       if (card.dataset.locked === "1") {
         const badge = card.querySelector(".badge");
         if (badge) {
           badge.classList.remove("is-shaking");
+          // reflow для перезапуска анимации
+          // eslint-disable-next-line no-unused-expressions
           badge.offsetWidth;
           badge.classList.add("is-shaking");
         }
       }
+
       actions.onGroupClick(g.id);
     });
-
     list.appendChild(card);
   });
 
@@ -206,6 +203,6 @@ function renderList(ui, state, actions) {
 
 function buildListKey(groups, connected, busy, donutActive) {
   const g = (groups || []).map((x) => x.id).join(",");
-  const c = (connected || []).map((x) => `${x.id}:${x.enabled ? 1 : 0}`).join(",");
+  const c = (connected || []).map((x) => x.id).join(",");
   return `${g}|${c}|${busy ? 1 : 0}|${donutActive ? 1 : 0}`;
 }

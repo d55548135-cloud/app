@@ -2,7 +2,7 @@ import { CONFIG } from "./config.js";
 import { checkDonut } from "./services/donut.js";
 import { vkInit, vkGetUserToken, vkGroupsGetAdmin } from "./api/vk.js";
 import { Store } from "./state/store.js";
-import { storageLoadConnections, storageSaveConnections } from "./services/storage.js";
+import { storageLoadConnections } from "./services/storage.js";
 import { connectFlow } from "./services/connect.js";
 import { renderApp } from "./ui/render.js";
 import { mountToast } from "./ui/toast.js";
@@ -178,39 +178,6 @@ const actions = {
     a.click();
     a.remove();
   },
-
-    async toggleGroupEnabled(groupId) {
-    const state = store.getState();
-    if (state.busy || state.refreshing) return;
-
-    const connected = (state.connected || []).slice();
-    const idx = connected.findIndex((x) => x.id === groupId);
-    if (idx === -1) return;
-
-    const prev = connected[idx];
-    const nextEnabled = !prev.enabled;
-
-    // ✅ оптимистично обновляем UI сразу
-    connected[idx] = { ...prev, enabled: nextEnabled };
-    store.setState({ connected });
-
-    try {
-      await storageSaveConnections(CONFIG.STORAGE_KEY, connected);
-
-      window.__hubbot_toast?.(
-        nextEnabled ? "Чат-бот включён ✅" : "Чат-бот выключен ⏸️",
-        "success"
-      );
-    } catch (e) {
-      // rollback
-      connected[idx] = prev;
-      store.setState({ connected });
-
-      window.__hubbot_toast?.("Не удалось изменить состояние", "error");
-    }
-  },
-
-
 
 
   async onGroupClick(groupId) {

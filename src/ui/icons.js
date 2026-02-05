@@ -132,21 +132,6 @@ const ICONS = {
     </svg>
   `,
 
-  toggleOn: `
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-      <path d="M8.5 17h7A5.5 5.5 0 0 0 21 11.5 5.5 5.5 0 0 0 15.5 6h-7A5.5 5.5 0 0 0 3 11.5 5.5 5.5 0 0 0 8.5 17Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-      <circle cx="15.5" cy="11.5" r="3.25" fill="currentColor"/>
-    </svg>
-  `,
-  toggleOff: `
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
-      <path d="M8.5 17h7A5.5 5.5 0 0 0 21 11.5 5.5 5.5 0 0 0 15.5 6h-7A5.5 5.5 0 0 0 3 11.5 5.5 5.5 0 0 0 8.5 17Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
-      <circle cx="8.5" cy="11.5" r="3.25" fill="currentColor" opacity="0.65"/>
-    </svg>
-  `,
-
 };
 
 export function Icon(name, className = "icon") {
