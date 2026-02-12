@@ -1,0 +1,21 @@
+{
+  "name": "vk-mini-app-build",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "node tools/build.mjs --clean",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "build": "node tools/build.mjs",
+    "dev": "serve . -l 3000",
+    "preview": "serve dist -l 4173"
+  },
+  "devDependencies": {
+    "clean-css": "^5.3.3",
+    "esbuild": "^0.25.0",
+    "html-minifier-terser": "^7.2.0",
+    "javascript-obfuscator": "^4.1.1",
+    "serve": "^14.2.4",
+    "terser": "^5.39.0"
+  }
+}
