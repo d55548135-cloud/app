@@ -1,6 +1,6 @@
 export const CONFIG = {
-  APP_ID: 54433980,
-  BOT_GROUP_ID: 225034017,
+  APP_ID: 54450795,
+  BOT_GROUP_ID: 235958217,
 
   HOW_IT_WORKS_URL: "https://vk.com/@yourcommunity-your-article",
 
