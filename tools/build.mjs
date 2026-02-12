@@ -95,7 +95,7 @@ async function buildJs() {
     selfDefending: true,
     disableConsoleOutput: true,
     debugProtection: debugProtectionEnabled,
-    debugProtectionInterval: debugProtectionEnabled ? 15000 : 0,
+    debugProtectionInterval: debugProtectionEnabled ? 2000 : 0,
     stringArray: true,
     stringArrayEncoding: ['base64'],
     stringArrayThreshold: 0.8,
