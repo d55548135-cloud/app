@@ -2,7 +2,7 @@ export const CONFIG = {
   APP_ID: 54450795,
   BOT_GROUP_ID: 235958217,
 
-  HOW_IT_WORKS_URL: "https://vk.com/@yourcommunity-your-article",
+  HOW_IT_WORKS_URL: "https://vk.com/@-235958217-kak-soobschestvo-stanovitsya-chastu-hubbot?subtype=primary",
 
   STORAGE_KEY: "hub_connect_data",
   MAX_CONNECTED: 2, // можно лимитировать, если нужно
