@@ -177,6 +177,7 @@
     width: 100%;
     max-width: 100%;
     gap: 10px;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .card{
