@@ -209,6 +209,12 @@ body{
   white-space: nowrap;
 }
 
+@media (max-width: 640px) {
+  .subchip__text{
+    font-size: 10px;
+  }
+}
+
 /* make svg sit perfectly */
 .subchip svg{ display:block; }
 
@@ -226,6 +232,18 @@ body{
   display: block;       /* ✅ */
   width: 20px;
   height: 20px;
+}
+
+@media (max-width: 640px) {
+  .subchip__ico{
+    width: 15px;          /* чуть больше чем 18 — чтобы не подрезало */
+    height: 15px;
+  }
+
+  .subchip__ico svg{
+    width: 15px;
+    height: 15px;
+  }
 }
 
 
