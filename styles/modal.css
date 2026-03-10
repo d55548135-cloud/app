@@ -143,7 +143,7 @@
 @media (max-width: 520px){
   .modal-overlay{
     place-items: end center;
-    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+    padding: 120px 12px calc(12px + env(safe-area-inset-bottom));
   }
 
   .modal-sheet{
