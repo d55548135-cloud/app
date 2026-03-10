@@ -1,0 +1,321 @@
+/* mobile-responsive.css */
+/* подключить ПОСЛЕДНИМ */
+
+/* =========================
+   TABLET / SMALL WIDTH
+   ========================= */
+@media (max-width: 640px){
+  :root{
+    --pad: 12px;
+    --pad-lg: 14px;
+    --radius-xl: 16px;
+    --radius-lg: 13px;
+    --radius-md: 11px;
+  }
+
+  .header{
+    padding:
+      calc(10px + env(safe-area-inset-top))
+      var(--pad-lg)
+      10px;
+  }
+
+  .header__title{
+    font-size: 17px;
+  }
+
+  .header__subtitle{
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .content{
+    padding: 12px;
+  }
+
+  .card{
+    padding: 11px;
+    border-radius: 16px;
+  }
+
+  .card__avatar{
+    width: 42px;
+    height: 42px;
+  }
+
+  .card__name{
+    font-size: 15px;
+  }
+
+  .card__meta{
+    font-size: 12px;
+  }
+
+  .searchbar{
+    grid-template-columns: 1fr 42px;
+    gap: 8px;
+  }
+
+  .searchbar__input,
+  .searchbar__refresh{
+    height: 42px;
+    border-radius: 13px;
+  }
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+@media (max-width: 520px){
+  :root{
+    --pad: 10px;
+    --pad-lg: 12px;
+    --radius-xl: 15px;
+    --radius-lg: 12px;
+    --radius-md: 10px;
+  }
+
+  .header{
+    padding:
+      calc(8px + env(safe-area-inset-top))
+      var(--pad-lg)
+      8px;
+  }
+
+  .header__row{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .header__top{
+    min-width: 0;
+  }
+
+  .header__title{
+    font-size: 16px;
+    line-height: 1.15;
+  }
+
+  .header__subtitle{
+    font-size: 12px;
+    line-height: 1.28;
+    max-width: none;
+  }
+
+  /* подписка больше не ломает шапку */
+  .subchip{
+    align-self: flex-start;
+    max-width: 100%;
+    min-height: 34px;
+    padding: 6px 10px;
+  }
+
+  .subchip__text{
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+
+  .subchip__ico,
+  .subchip__ico svg{
+    width: 18px;
+    height: 18px;
+  }
+
+  /* stepper на мобилке — 2x2 вместо 4 в ряд */
+  .stepper{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .stepper__item{
+    min-width: 0;
+    padding: 7px 9px;
+    gap: 7px;
+  }
+
+  .stepper__text{
+    font-size: 11px;
+  }
+
+  .stepper__dot{
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+  }
+
+  .content{
+    padding: 10px;
+  }
+
+  .section{
+    max-width: 100%;
+  }
+
+  .searchbar{
+    grid-template-columns: 1fr 40px;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .searchbar__input,
+  .searchbar__refresh{
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .searchbar__input{
+    padding: 0 12px;
+    font-size: 15px;
+  }
+
+  .card{
+    padding: 10px;
+    border-radius: 14px;
+    gap: 8px;
+  }
+
+  .card__left{
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .card__avatar{
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+  }
+
+  .card__info{
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .card__name{
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .card__meta{
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .card__right{
+    gap: 8px;
+    padding-left: 8px;
+    flex: 0 0 auto;
+  }
+
+  .badge{
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+  }
+
+  .empty{
+    padding: 22px 14px;
+    border-radius: 14px;
+  }
+
+  .empty__title{
+    font-size: 15px;
+  }
+
+  .empty__text{
+    font-size: 12px;
+  }
+
+  .footer{
+    min-height: 40px;
+    padding: 0 12px env(safe-area-inset-bottom);
+  }
+
+  .footer__how{
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+
+  .toast{
+    padding: 8px 12px;
+    max-width: calc(100vw - 20px);
+  }
+
+  .toast__text{
+    font-size: 12px;
+  }
+}
+
+/* =========================
+   VERY SMALL MOBILE
+   ========================= */
+@media (max-width: 380px){
+  .header__title{
+    font-size: 15px;
+  }
+
+  .header__subtitle{
+    font-size: 11px;
+  }
+
+  .subchip{
+    min-height: 32px;
+    padding: 5px 9px;
+  }
+
+  .subchip__text{
+    font-size: 11px;
+    max-width: 150px;
+  }
+
+  .stepper{
+    gap: 6px;
+  }
+
+  .stepper__item{
+    padding: 6px 8px;
+  }
+
+  .stepper__text{
+    font-size: 10px;
+  }
+
+  .searchbar{
+    grid-template-columns: 1fr 38px;
+  }
+
+  .searchbar__input,
+  .searchbar__refresh{
+    height: 38px;
+    border-radius: 11px;
+  }
+
+  .card{
+    padding: 9px;
+  }
+
+  .card__avatar{
+    width: 36px;
+    height: 36px;
+  }
+
+  .card__name{
+    font-size: 13px;
+  }
+
+  .card__meta{
+    font-size: 11px;
+  }
+
+  .badge{
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+  }
+}
