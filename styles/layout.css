@@ -68,11 +68,11 @@ body{
 
 @media (max-width: 450px) {
   .header__title{
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .header__subtitle{
-    font-size: 10px;
+    font-size: 9px;
   }
 }
 
