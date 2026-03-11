@@ -135,6 +135,16 @@ body{
   transition: background 160ms ease, transform 120ms ease;
 }
 
+@media (max-width: 450px) {
+  .footer{
+    min-height: 34px;
+  }
+
+  .footer__how{
+    font-size: 12px;
+  }
+}
+
 .footer__how:hover{
   background: color-mix(in srgb, var(--brand) 10%, transparent);
 }
