@@ -180,6 +180,7 @@ body{
 @media (max-width: 450px) {
   .subchip{
     padding: 6px 8px;
+    gap: 6px;
   }
 }
 

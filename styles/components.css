@@ -41,6 +41,10 @@
     width: 6px;
     height: 6px;
   }
+
+  .stepper__item{
+    padding: 6px 10px;
+  }
 }
 
 .stepper__item.is-active{
@@ -117,6 +121,21 @@
   border-radius: 999px;
   object-fit: cover;
   background: color-mix(in srgb, var(--muted) 12%, transparent);
+}
+
+@media (max-width: 450px) {
+  .card__avatar{
+    width: 36px;
+    height: 36px;
+  }
+
+  card__name{
+    font-size: 14px;
+  }
+
+  .card__meta{
+    font-size: 11px;
+  }
 }
 
 .card__info{
@@ -622,6 +641,22 @@ button{
   background: color-mix(in srgb, var(--surface) 85%, transparent);
   color: var(--text);
   outline: none;
+}
+
+@media (max-width: 450px) {
+  .searchbar{
+    justify-items: center;
+  }
+
+  .searchbar__input{
+    height: 36px;
+  }
+
+  .searchbar__refresh{
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
 }
 
 .searchbar__input::placeholder{
