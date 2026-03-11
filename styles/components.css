@@ -33,7 +33,7 @@
   text-overflow: ellipsis;
 }
 
-@media (max-width: 300px) {
+@media (max-width: 450px) {
   .stepper__text{
     font-size: 10px;
   }
