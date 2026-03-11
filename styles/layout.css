@@ -187,12 +187,6 @@ body{
 }
 
 
-@media (max-width: 450px) {
-  .subchip{
-    padding: 6px 8px;
-    gap: 6px;
-  }
-}
 
 
 /* ACTIVE */
@@ -285,3 +279,14 @@ body{
 
 
 .donut-hole { fill: var(--surface); }
+
+@media (max-width: 450px) {
+  .subchip{
+    padding: 6px 6px;
+    gap: 4px;
+  }
+
+  .subchip__text{
+    font-size: 9px;
+  }
+}
