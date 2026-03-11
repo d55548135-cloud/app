@@ -34,6 +34,11 @@
 }
 
 @media (max-width: 450px) {
+
+  .stepper{
+    gap: 6px;
+  }
+
   .stepper__text{
     font-size: 10px;
   }
@@ -43,7 +48,7 @@
   }
 
   .stepper__item{
-    padding: 6px 10px;
+    padding: 6px 6px;
   }
 }
 
