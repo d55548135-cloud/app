@@ -33,6 +33,16 @@
   text-overflow: ellipsis;
 }
 
+@media (max-width: 300px) {
+  .stepper__text{
+    font-size: 10px;
+  }
+  .stepper__dot{
+    width: 6px;
+    height: 6px;
+  }
+}
+
 .stepper__item.is-active{
   border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
   transform: translateY(-1px);

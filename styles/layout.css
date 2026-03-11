@@ -66,6 +66,17 @@ body{
   }
 }
 
+@media (max-width: 300px) {
+  .header__title{
+    font-size: 14px;
+  }
+
+  .header__subtitle{
+    font-size: 10px;
+  }
+}
+
+
 
 /* ✅ скроллится только content */
 .content{
@@ -164,6 +175,14 @@ body{
     0 10px 24px rgba(0,0,0,.22),
     0 1px 0 rgba(255,255,255,.06) inset;
 }
+
+
+@media (max-width: 300px) {
+  .subchip{
+    padding: 6px 8px;
+  }
+}
+
 
 /* ACTIVE */
 .subchip--on{
