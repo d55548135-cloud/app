@@ -125,16 +125,16 @@
 
 @media (max-width: 450px) {
   .card__avatar{
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
   }
 
   card__name{
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .card__meta{
-    font-size: 11px;
+    font-size: 10px;
   }
 }
 
@@ -680,6 +680,7 @@ button{
 
   .searchbar__input{
     height: 36px;
+    font-size: 12px;
   }
 
   .searchbar__refresh{
