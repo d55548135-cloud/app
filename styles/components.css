@@ -675,6 +675,7 @@ button{
 @media (max-width: 450px) {
   .searchbar{
     justify-items: center;
+    display: flex;
   }
 
   .searchbar__input{
