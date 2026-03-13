@@ -242,7 +242,7 @@ function buildIntroIllustration() {
   const card = el("div", "intro__scene");
 
   const img = el("img", "intro__sceneImage", {
-    src: "./assets/intro-banner.jpg",
+    src: "./assets/intro-banner-v2.jpg",
     alt: "",
     loading: "eager",
     decoding: "async",
