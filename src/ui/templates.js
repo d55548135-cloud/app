@@ -208,13 +208,13 @@ export function IntroState({ hasSavedConnections = false, introState = "default"
 
   const title = el("div", "intro__title", {
     text: denied
-      ? "Без доступа нельзя продолжить"
+      ? "Нужен доступ, чтобы продолжить"
       : "Подключите HubBot к вашему сообществу",
   });
 
   const text = el("div", "intro__text", {
     text: denied
-      ? "Вы запретили доступ к аккаунту VK. Без него HubBot не сможет показать ваши сообщества, проверить статус подключения и продолжить настройку."
+      ? "Без доступа к аккаунту VK HubBot не сможет показать ваши сообщества, проверить статус подключения и продолжить настройку."
       : "HubBot автоматически настроит сообщения сообщества, возможности ботов и стабильную связь. Сначала покажем, что будет происходить, а доступы запросим только на следующем шаге.",
   });
 
@@ -246,7 +246,7 @@ export function IntroState({ hasSavedConnections = false, introState = "default"
   if (denied) {
     const note = el("div", "intro__saved intro__saved--warning");
     const noteText = el("div", "intro__savedText", {
-      text: "Нажмите «Разрешить доступ», чтобы снова открыть системный запрос VK.",
+      text: "После нажатия «Продолжить» VK снова покажет системный запрос доступа.",
     });
     note.appendChild(noteText);
     content.appendChild(note);

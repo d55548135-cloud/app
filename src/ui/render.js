@@ -148,9 +148,7 @@ function showIntro(ui, state, actions) {
     introState: state.introState || "default",
   });
 
-  const btn = PrimaryButton({
-    label: state.introState === "auth_denied" ? "Разрешить доступ" : "Продолжить",
-  });
+  const btn = PrimaryButton({ label: "Продолжить" });
 
   btn.classList.add("intro__cta");
   btn.addEventListener("click", actions.continueFromIntro);
