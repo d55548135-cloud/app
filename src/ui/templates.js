@@ -225,9 +225,11 @@ export function IntroState({ hasSavedConnections = false }) {
   content.appendChild(points);
 
   if (hasSavedConnections) {
-    const saved = el("div", "intro__saved", {
+    const saved = el("div", "intro__saved");
+    const savedText = el("div", "intro__savedText", {
       text: "Ранее подключённые сообщества уже сохранены и подтянутся после продолжения.",
     });
+    saved.appendChild(savedText);
     content.appendChild(saved);
   }
 
