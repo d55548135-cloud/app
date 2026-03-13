@@ -21,7 +21,7 @@ export function renderApp(viewRoot, state, actions) {
   updateHeader(ui, state);
 
   if (state.phase === "intro") {
-    showIntro(ui, actions);
+    showIntro(ui, state, actions);
     return;
   }
 
@@ -124,24 +124,22 @@ function updateHeader(ui, state) {
     Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
   );
 
-  const hideSearch =
+  const shouldHideSearch =
     state.phase === "intro" ||
     state.phase === "loading" ||
     state.phase === "boot" ||
     state.phase === "error";
 
-  ui.searchWrap.style.display = hideSearch ? "none" : "";
+  ui.searchWrap.style.display = shouldHideSearch ? "none" : "";
 }
 
-function showIntro(ui, actions) {
+function showIntro(ui, state, actions) {
   clear(ui.listSlot);
   clear(ui.overlaySlot);
 
   const intro = IntroState({
-    title: "Подключите HubBot к вашему сообществу",
-    text:
-      "Сначала покажем ваши сообщества, которыми вы управляете. " +
-      "После выбора сообщества отдельно попросим доступ, чтобы автоматически включить сообщения, бота и связь для новых сообщений.",
+    hasSavedConnections: (state.connected || []).length > 0,
+    howItWorksUrl: actions.howItWorksUrl,
   });
 
   const btn = PrimaryButton({ label: "Продолжить" });

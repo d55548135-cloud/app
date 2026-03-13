@@ -22,12 +22,9 @@ const store = new Store({
   error: null,
   busy: false,
   refreshing: false,
-
   donutActive: false,
   donutCheckedAt: null,
-
-  introAccepted: false,
-  permissionGate: null, // { type: "community_denied", groupId, groupName }
+  permissionGate: null,
 });
 
 let progressEngine = null;
@@ -59,23 +56,23 @@ export async function initApp() {
   });
 
   store.setState({
-    phase: "intro",
+    phase: "loading",
     error: null,
-    busy: false,
-    refreshing: false,
-    permissionGate: null,
   });
 
   try {
     await vkInit();
 
     const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
+
     store.setState({
       connected,
       phase: "intro",
       error: null,
       busy: false,
       refreshing: false,
+      progress: { step: 0, label: "", percent: 0 },
+      permissionGate: null,
     });
 
     root.setAttribute("aria-busy", "false");
@@ -91,27 +88,26 @@ export async function initApp() {
   }
 }
 
-async function loadUserContext() {
+async function loadAuthorizedData() {
   const root = document.getElementById("app");
+  root?.setAttribute("aria-busy", "true");
 
   store.setState({
     phase: "loading",
     error: null,
     busy: true,
     refreshing: false,
-    permissionGate: null,
   });
-  root?.setAttribute("aria-busy", "true");
 
   try {
     const userToken = await vkGetUserToken(CONFIG.APP_ID, CONFIG.USER_SCOPE);
 
-    const [groups, donutActive] = await Promise.all([
-      vkGroupsGetAdmin(userToken, CONFIG.VK_API_VERSION),
+    const [donutActive, groups] = await Promise.all([
       checkDonut({
         userToken,
         groupId: CONFIG.BOT_GROUP_ID,
       }),
+      vkGroupsGetAdmin(userToken, CONFIG.VK_API_VERSION),
     ]);
 
     store.setState({
@@ -120,7 +116,6 @@ async function loadUserContext() {
       filteredGroups: groups,
       donutActive,
       donutCheckedAt: Date.now(),
-      introAccepted: true,
       error: null,
       busy: false,
       refreshing: false,
@@ -130,8 +125,7 @@ async function loadUserContext() {
 
     root?.setAttribute("aria-busy", "false");
   } catch (e) {
-    log("loadUserContext error", e);
-
+    log("loadAuthorizedData error", e);
     store.setState({
       phase: "error",
       error: normalizeError(
@@ -141,7 +135,6 @@ async function loadUserContext() {
       busy: false,
       refreshing: false,
     });
-
     root?.setAttribute("aria-busy", "false");
   }
 }
@@ -170,16 +163,15 @@ const actions = {
 
   continueFromIntro: async () => {
     const state = store.getState();
-    if (state.busy) return;
-    await loadUserContext();
+    if (state.busy || state.refreshing) return;
+    await loadAuthorizedData();
   },
 
   howItWorksUrl: CONFIG.HOW_IT_WORKS_URL,
 
   refreshConnections: async (silent = false) => {
     const state = store.getState();
-    if (state.phase !== "ready") return;
-    if (state.refreshing || state.busy) return;
+    if (state.refreshing || state.busy || state.phase !== "ready") return;
 
     store.setState({ refreshing: true });
     await syncConnectionsFromStorage({ silent, showUpToDate: !silent });
@@ -278,8 +270,7 @@ const actions = {
     window.__hubbot_modal_open?.({
       title: `Подключить «${group.name}»?`,
       subtitle:
-        "Сейчас VK попросит разрешение на управление сообщением и настройками сообщества. " +
-        "Это нужно только для автоматического включения сообщений, возможностей бота и стабильной связи для новых сообщений.",
+        "Сейчас VK запросит доступ к настройкам выбранного сообщества. Это нужно, чтобы включить сообщения, возможности ботов и стабильную связь для новых сообщений.",
       actions: [
         {
           id: "connect",
@@ -401,7 +392,6 @@ const actions = {
             groupName: group.name,
           },
         });
-
         return;
       }
 
@@ -420,10 +410,12 @@ const actions = {
 function filterGroups() {
   const { groups, search } = store.getState();
   const q = (search || "").trim().toLowerCase();
+
   if (!q) {
     store.setState({ filteredGroups: groups });
     return;
   }
+
   store.setState({
     filteredGroups: groups.filter((g) => (g.name || "").toLowerCase().includes(q)),
   });
@@ -534,7 +526,6 @@ function createProgressEngine(emit) {
       if (nextLabel) stepLabels[s] = nextLabel;
 
       const minCap = STEP_MIN_PERCENT[s] ?? 0;
-
       if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap, minCap);
       else cap = Math.max(cap, minCap);
     },
