@@ -206,19 +206,19 @@ export function IntroState({ hasSavedConnections = false }) {
   const content = el("div", "intro__content");
 
   const title = el("div", "intro__title", {
-    text: "Подключите HubBot к вашему сообществу",
+    text: "Подключите сообщество к HubBot",
   });
 
   const text = el("div", "intro__text", {
     text:
-      "HubBot автоматически настроит сообщения сообщества, возможности ботов и стабильную связь. " +
-      "Сначала покажем, что будет происходить, а доступы запросим только на следующем шаге.",
+      "HubBot Control покажет сообщества, доступные для подключения, и отметит уже сохранённые. На этом шаге мы ничего не изменяем в настройках сообщества. " +
+      "Доступ к VK будет запрошен только после вашего выбора и подтверждения.",
   });
 
   const points = el("div", "intro__points");
-  points.appendChild(pointRow("Покажем ваши сообщества, которыми вы управляете"));
-  points.appendChild(pointRow("После выбора сообщества отдельно попросим доступ VK"));
-  points.appendChild(pointRow("Настройка займёт около 15 секунд"));
+  points.appendChild(pointRow("Покажем сообщества, которыми вы можете управлять"));
+  points.appendChild(pointRow("Отметим уже подключённые сообщества"));
+  points.appendChild(pointRow("После выбора отдельно запросим доступ через VK"));
 
   content.appendChild(title);
   content.appendChild(text);
@@ -227,7 +227,7 @@ export function IntroState({ hasSavedConnections = false }) {
   if (hasSavedConnections) {
     const saved = el("div", "intro__saved");
     const savedText = el("div", "intro__savedText", {
-      text: "Ранее подключённые сообщества уже сохранены и подтянутся после продолжения.",
+      text: "Ранее подключённые сообщества будут загружены автоматически.",
     });
     saved.appendChild(savedText);
     content.appendChild(saved);
