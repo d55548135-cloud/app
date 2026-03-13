@@ -243,12 +243,12 @@
 
   .intro__title {
     margin-bottom: 7px;
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .intro__text {
     margin-bottom: 10px;
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.46;
   }
 
@@ -260,7 +260,7 @@
   .intro__point,
   .intro__row {
     gap: 9px;
-    padding: 9px 11px;
+    padding: 6px 11px;
     border-radius: 13px;
   }
 
@@ -282,9 +282,9 @@
 
   .intro__saved {
     margin-top: 10px;
-    padding: 14px 12px 14px 14px;
+    padding: 12px 12px 12px 14px;
     border-radius: 14px;
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.4;
   }
 
@@ -302,6 +302,7 @@
     width: min(100%, 680px);
     min-height: 44px;
     font-size: 15px;
+    margin: -30px auto 0;
     border-radius: 15px;
   }
 }
