@@ -181,8 +181,8 @@
 .intro__cta:hover {
   transform: translateY(-1px);
   box-shadow:
-    0 16px 32px rgba(43, 101, 219, 0.32),
-    inset 0 1px 0 rgba(255,255,255,0.24);
+    0 0px 8px 1px rgba(43, 101, 219, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .2);
 }
 
 .intro__cta:active {
