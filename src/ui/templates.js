@@ -241,64 +241,112 @@ export function IntroState({ hasSavedConnections = false }) {
 function buildIntroIllustration() {
   const card = el("div", "intro__scene");
   card.innerHTML = `
-    <svg viewBox="0 0 720 360" class="intro__svg" aria-hidden="true">
+    <svg viewBox="0 0 960 460" class="intro__svg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="hbBg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#f3f5ff"/>
-          <stop offset="100%" stop-color="#eceffd"/>
+        <linearGradient id="hbBg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#F7F9FF"/>
+          <stop offset="100%" stop-color="#EEF2FF"/>
         </linearGradient>
-        <linearGradient id="hbGlow" x1="0" x2="1">
-          <stop offset="0%" stop-color="#7c5cff"/>
-          <stop offset="100%" stop-color="#4f8cff"/>
+
+        <linearGradient id="hbCard" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF"/>
+          <stop offset="100%" stop-color="#F6F8FF"/>
         </linearGradient>
-        <filter id="hbShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#6f6ce8" flood-opacity="0.10"/>
+
+        <linearGradient id="hbBot" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#17192E"/>
+          <stop offset="100%" stop-color="#12142A"/>
+        </linearGradient>
+
+        <linearGradient id="hbAccent" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#8B63FF"/>
+          <stop offset="100%" stop-color="#5E8EFF"/>
+        </linearGradient>
+
+        <linearGradient id="hbLine" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#9A8CFF"/>
+          <stop offset="100%" stop-color="#6B90FF"/>
+        </linearGradient>
+
+        <filter id="hbShadowSoft" x="-20%" y="-20%" width="140%" height="160%">
+          <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#9AA7D6" flood-opacity="0.16"/>
+        </filter>
+
+        <filter id="hbShadowCard" x="-20%" y="-20%" width="140%" height="160%">
+          <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#8B98C8" flood-opacity="0.14"/>
+        </filter>
+
+        <filter id="hbGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="14" result="blur"/>
+          <feColorMatrix
+            in="blur"
+            type="matrix"
+            values="1 0 0 0 0.48
+                    0 1 0 0 0.42
+                    0 0 1 0 1
+                    0 0 0 0.18 0"/>
         </filter>
       </defs>
 
-      <rect x="16" y="16" width="688" height="328" rx="36" fill="url(#hbBg)" />
-      <circle cx="618" cy="84" r="48" fill="#e9e3ff"/>
-      <circle cx="580" cy="258" r="62" fill="#e7efff"/>
-      <circle cx="130" cy="88" r="34" fill="#edf1ff"/>
+      <rect x="18" y="18" width="924" height="424" rx="36" fill="url(#hbBg)"/>
 
-      <g filter="url(#hbShadow)">
-        <rect x="64" y="90" width="208" height="184" rx="30" fill="#ffffff"/>
-        <rect x="88" y="118" width="58" height="58" rx="18" fill="#e8eefb"/>
-        <rect x="160" y="124" width="80" height="14" rx="7" fill="#ccd5f2"/>
-        <rect x="160" y="148" width="58" height="12" rx="6" fill="#d8def3"/>
-        <rect x="88" y="198" width="122" height="14" rx="7" fill="#d3daf0"/>
-        <rect x="88" y="222" width="98" height="14" rx="7" fill="#d9dff1"/>
-        <rect x="88" y="246" width="116" height="16" rx="8" fill="#d8cdfc"/>
-      </g>
-
-      <g transform="translate(312 64)" filter="url(#hbShadow)">
-        <rect x="0" y="28" width="132" height="176" rx="34" fill="#18192b"/>
-        <rect x="20" y="50" width="92" height="70" rx="22" fill="#f5f7ff"/>
-        <circle cx="42" cy="82" r="6" fill="#1a1b2f"/>
-        <circle cx="88" cy="82" r="6" fill="#1a1b2f"/>
-        <rect x="44" y="100" width="38" height="8" rx="4" fill="#8e97ff"/>
-        <rect x="34" y="0" width="12" height="34" rx="6" fill="#18192b"/>
-        <rect x="86" y="0" width="12" height="34" rx="6" fill="#18192b"/>
-        <rect x="18" y="132" width="96" height="18" rx="9" fill="#232845"/>
-        <path d="M67 138l-10 10h8l-3 11 13-13h-8l2-8z" fill="#8b63ff"/>
-      </g>
-
-      <g filter="url(#hbShadow)">
-        <rect x="506" y="102" width="126" height="132" rx="28" fill="#ffffff"/>
-        <rect x="530" y="126" width="46" height="46" rx="16" fill="#e8eefb"/>
-        <rect x="588" y="132" width="36" height="11" rx="5.5" fill="#ccd5f2"/>
-        <rect x="588" y="150" width="48" height="11" rx="5.5" fill="#d8def3"/>
-        <rect x="530" y="194" width="90" height="14" rx="7" fill="#d3daf0"/>
-        <path d="M610 208l14 14 22-30" fill="none" stroke="#5b7bff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-      </g>
-
-      <path d="M276 180h28" stroke="#8e97ff" stroke-width="6" stroke-linecap="round"/>
-      <path d="M444 180h28" stroke="#8e97ff" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="146" cy="98" r="42" fill="#EFF3FF"/>
+      <circle cx="820" cy="96" r="54" fill="#EDE5FF"/>
+      <circle cx="790" cy="328" r="68" fill="#EAF1FF"/>
 
       <g opacity="0.9">
-        <circle cx="360" cy="292" r="9" fill="#8b63ff"/>
-        <circle cx="392" cy="292" r="9" fill="#6290ff"/>
-        <circle cx="424" cy="292" r="9" fill="#8b63ff"/>
+        <rect x="88" y="84" width="300" height="290" rx="34" fill="#F3F5FD"/>
+        <rect x="572" y="108" width="222" height="214" rx="30" fill="#F2F5FD"/>
+      </g>
+
+      <g filter="url(#hbShadowCard)">
+        <rect x="114" y="118" width="252" height="222" rx="34" fill="url(#hbCard)"/>
+        <rect x="146" y="150" width="68" height="68" rx="22" fill="#E3E9F6"/>
+        <rect x="232" y="160" width="96" height="16" rx="8" fill="#C8D1EA"/>
+        <rect x="232" y="186" width="72" height="14" rx="7" fill="#D8DFF2"/>
+        <rect x="146" y="254" width="136" height="16" rx="8" fill="#C9D2E9"/>
+        <rect x="146" y="282" width="108" height="14" rx="7" fill="#D9E0F1"/>
+        <rect x="146" y="308" width="122" height="18" rx="9" fill="#D8CBFB"/>
+      </g>
+
+      <g filter="url(#hbShadowCard)">
+        <rect x="612" y="132" width="176" height="160" rx="28" fill="url(#hbCard)"/>
+        <rect x="646" y="164" width="56" height="56" rx="18" fill="#E3E9F6"/>
+        <rect x="720" y="172" width="58" height="12" rx="6" fill="#C8D1EA"/>
+        <rect x="720" y="192" width="44" height="12" rx="6" fill="#D8DFF2"/>
+        <rect x="646" y="246" width="108" height="14" rx="7" fill="#CDD5EA"/>
+        <path d="M748 250l20 20 32-42" fill="none" stroke="#5E82FF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+
+      <g>
+        <rect x="382" y="78" width="196" height="268" rx="56" fill="url(#hbBot)"/>
+        <rect x="430" y="42" width="16" height="52" rx="8" fill="#17192E"/>
+        <rect x="514" y="42" width="16" height="52" rx="8" fill="#17192E"/>
+
+        <g filter="url(#hbShadowSoft)">
+          <rect x="414" y="118" width="132" height="108" rx="30" fill="#F7F9FF"/>
+        </g>
+
+        <circle cx="454" cy="172" r="8" fill="#1B1D31"/>
+        <circle cx="506" cy="172" r="8" fill="#1B1D31"/>
+        <rect x="454" y="194" width="52" height="10" rx="5" fill="#8790FF"/>
+
+        <rect x="416" y="244" width="130" height="24" rx="12" fill="#23274A"/>
+        <g filter="url(#hbGlow)">
+          <path d="M478 255h10l-12 16h10l-14 20 4-14h-10l12-22z" fill="url(#hbAccent)"/>
+        </g>
+        <path d="M478 255h10l-12 16h10l-14 20 4-14h-10l12-22z" fill="url(#hbAccent)"/>
+      </g>
+
+      <g opacity="0.95">
+        <rect x="366" y="204" width="32" height="8" rx="4" fill="url(#hbLine)"/>
+        <rect x="562" y="204" width="32" height="8" rx="4" fill="url(#hbLine)"/>
+      </g>
+
+      <g opacity="0.96">
+        <circle cx="468" cy="362" r="11" fill="#8B63FF"/>
+        <circle cx="504" cy="362" r="11" fill="#6B90FF"/>
+        <circle cx="540" cy="362" r="11" fill="#8B63FF"/>
       </g>
     </svg>
   `;
