@@ -15,6 +15,7 @@ const CSS_FILES = [
   'styles/animations.css',
   'styles/modal.css',
   'styles/scrollbars.css',
+  'styles/intro.css'
 ];
 
 function cleanDist() {
