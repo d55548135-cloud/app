@@ -24,8 +24,6 @@
 }
 
 .introScreen {
-  min-height: 96vh;
-  height: 96vh;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
@@ -333,6 +331,5 @@
 @media (max-height: 740px) and (min-width: 721px) {
   .intro {
     transform: translateY(-20px) scale(0.96);
-    transform-origin: center top;
   }
 }
