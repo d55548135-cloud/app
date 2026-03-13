@@ -24,8 +24,8 @@
 }
 
 .introScreen {
-  min-height: 100vh;
-  height: 100vh;
+  min-height: 96vh;
+  height: 96vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
