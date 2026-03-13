@@ -198,8 +198,12 @@ export function GroupCard({ group, isConnected, isBusy, donutActive }) {
 export function IntroState({ hasSavedConnections = false }) {
   const wrap = el("div", "intro");
 
-  const hero = el("div", "intro__hero");
-  hero.appendChild(buildIntroIllustration());
+  const shell = el("div", "intro__shell");
+
+  const visual = el("div", "intro__visual");
+  visual.appendChild(buildIntroIllustration());
+
+  const content = el("div", "intro__content");
 
   const title = el("div", "intro__title", {
     text: "Подключите HubBot к вашему сообществу",
@@ -207,42 +211,29 @@ export function IntroState({ hasSavedConnections = false }) {
 
   const text = el("div", "intro__text", {
     text:
-      "HubBot автоматически включает сообщения сообщества, возможности ботов и стабильную связь для новых сообщений. Сначала вы увидите описание сервиса, а доступы запросим только на следующем шаге.",
+      "HubBot автоматически настроит сообщения сообщества, возможности ботов и стабильную связь. " +
+      "Сначала покажем, что будет происходить, а доступы запросим только на следующем шаге.",
   });
 
-  hero.appendChild(title);
-  hero.appendChild(text);
+  const points = el("div", "intro__points");
+  points.appendChild(pointRow("Покажем ваши сообщества, которыми вы управляете"));
+  points.appendChild(pointRow("После выбора сообщества отдельно попросим доступ VK"));
+  points.appendChild(pointRow("Настройка займёт около 15 секунд"));
 
-  const chips = el("div", "intro__chips");
-  chips.appendChild(infoChip("Никаких запросов прав при открытии"));
-  chips.appendChild(infoChip("Доступ появится только после продолжения"));
-  chips.appendChild(infoChip("Подключение займёт около 15 секунд"));
-  hero.appendChild(chips);
-
-  const card = el("div", "intro__card");
-  card.appendChild(featureRow("Покажем ваши сообщества, которыми вы управляете"));
-  card.appendChild(featureRow("После выбора сообщества отдельно попросим доступ VK"));
-  card.appendChild(featureRow("Автоматически настроим сообщения, чат-бота и связь"));
+  content.appendChild(title);
+  content.appendChild(text);
+  content.appendChild(points);
 
   if (hasSavedConnections) {
     const saved = el("div", "intro__saved", {
       text: "Ранее подключённые сообщества уже сохранены и подтянутся после продолжения.",
     });
-    card.appendChild(saved);
+    content.appendChild(saved);
   }
 
-  const note = el("div", "intro__note");
-  note.appendChild(shieldMini());
-  note.appendChild(
-    el("div", "intro__noteText", {
-      text:
-        "Прозрачный сценарий подключения: сначала информация о сервисе, затем — запрос доступа только в нужный момент.",
-    })
-  );
-
-  wrap.appendChild(hero);
-  wrap.appendChild(card);
-  wrap.appendChild(note);
+  shell.appendChild(visual);
+  shell.appendChild(content);
+  wrap.appendChild(shell);
 
   return wrap;
 }
@@ -253,78 +244,71 @@ function buildIntroIllustration() {
     <svg viewBox="0 0 720 360" class="intro__svg" aria-hidden="true">
       <defs>
         <linearGradient id="hbBg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#f6f7ff"/>
-          <stop offset="100%" stop-color="#eef1ff"/>
+          <stop offset="0%" stop-color="#f3f5ff"/>
+          <stop offset="100%" stop-color="#eceffd"/>
         </linearGradient>
         <linearGradient id="hbGlow" x1="0" x2="1">
           <stop offset="0%" stop-color="#7c5cff"/>
           <stop offset="100%" stop-color="#4f8cff"/>
         </linearGradient>
         <filter id="hbShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#6f6ce8" flood-opacity="0.16"/>
+          <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#6f6ce8" flood-opacity="0.10"/>
         </filter>
       </defs>
 
-      <rect x="16" y="16" width="688" height="328" rx="32" fill="url(#hbBg)" />
-      <circle cx="618" cy="84" r="48" fill="#ebe7ff"/>
-      <circle cx="580" cy="260" r="64" fill="#e5efff"/>
-      <circle cx="128" cy="84" r="36" fill="#eef3ff"/>
+      <rect x="16" y="16" width="688" height="328" rx="36" fill="url(#hbBg)" />
+      <circle cx="618" cy="84" r="48" fill="#e9e3ff"/>
+      <circle cx="580" cy="258" r="62" fill="#e7efff"/>
+      <circle cx="130" cy="88" r="34" fill="#edf1ff"/>
 
       <g filter="url(#hbShadow)">
-        <rect x="60" y="82" width="220" height="200" rx="28" fill="#ffffff"/>
-        <rect x="86" y="112" width="64" height="64" rx="20" fill="#edf3ff"/>
-        <rect x="164" y="118" width="86" height="16" rx="8" fill="#dde6ff"/>
-        <rect x="164" y="144" width="64" height="12" rx="6" fill="#e8edff"/>
-        <rect x="86" y="196" width="138" height="14" rx="7" fill="#e7ebfb"/>
-        <rect x="86" y="220" width="112" height="14" rx="7" fill="#eef1fb"/>
-        <rect x="86" y="250" width="132" height="18" rx="9" fill="url(#hbGlow)" opacity="0.18"/>
+        <rect x="64" y="90" width="208" height="184" rx="30" fill="#ffffff"/>
+        <rect x="88" y="118" width="58" height="58" rx="18" fill="#e8eefb"/>
+        <rect x="160" y="124" width="80" height="14" rx="7" fill="#ccd5f2"/>
+        <rect x="160" y="148" width="58" height="12" rx="6" fill="#d8def3"/>
+        <rect x="88" y="198" width="122" height="14" rx="7" fill="#d3daf0"/>
+        <rect x="88" y="222" width="98" height="14" rx="7" fill="#d9dff1"/>
+        <rect x="88" y="246" width="116" height="16" rx="8" fill="#d8cdfc"/>
       </g>
 
-      <g transform="translate(315 64)" filter="url(#hbShadow)">
-        <rect x="0" y="28" width="128" height="172" rx="32" fill="#141722"/>
-        <rect x="20" y="48" width="88" height="68" rx="20" fill="#f4f6ff"/>
-        <circle cx="42" cy="77" r="6" fill="#141722"/>
-        <circle cx="86" cy="77" r="6" fill="#141722"/>
-        <rect x="44" y="96" width="40" height="8" rx="4" fill="#8f9cff"/>
-        <rect x="34" y="0" width="12" height="34" rx="6" fill="#141722"/>
-        <rect x="82" y="0" width="12" height="34" rx="6" fill="#141722"/>
-        <rect x="18" y="130" width="92" height="18" rx="9" fill="#22273a"/>
-        <path d="M66 138l-11 10h9l-4 12 14-14h-9l3-8z" fill="#8b5cff"/>
+      <g transform="translate(312 64)" filter="url(#hbShadow)">
+        <rect x="0" y="28" width="132" height="176" rx="34" fill="#18192b"/>
+        <rect x="20" y="50" width="92" height="70" rx="22" fill="#f5f7ff"/>
+        <circle cx="42" cy="82" r="6" fill="#1a1b2f"/>
+        <circle cx="88" cy="82" r="6" fill="#1a1b2f"/>
+        <rect x="44" y="100" width="38" height="8" rx="4" fill="#8e97ff"/>
+        <rect x="34" y="0" width="12" height="34" rx="6" fill="#18192b"/>
+        <rect x="86" y="0" width="12" height="34" rx="6" fill="#18192b"/>
+        <rect x="18" y="132" width="96" height="18" rx="9" fill="#232845"/>
+        <path d="M67 138l-10 10h8l-3 11 13-13h-8l2-8z" fill="#8b63ff"/>
       </g>
 
       <g filter="url(#hbShadow)">
-        <rect x="486" y="94" width="170" height="152" rx="28" fill="#ffffff"/>
-        <rect x="516" y="122" width="54" height="54" rx="18" fill="#edf3ff"/>
-        <rect x="582" y="126" width="42" height="12" rx="6" fill="#dfe7ff"/>
-        <rect x="582" y="146" width="56" height="12" rx="6" fill="#e9eeff"/>
-        <rect x="516" y="192" width="110" height="16" rx="8" fill="#e7ebfb"/>
-        <path d="M624 214l14 14 20-28" fill="none" stroke="url(#hbGlow)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="506" y="102" width="126" height="132" rx="28" fill="#ffffff"/>
+        <rect x="530" y="126" width="46" height="46" rx="16" fill="#e8eefb"/>
+        <rect x="588" y="132" width="36" height="11" rx="5.5" fill="#ccd5f2"/>
+        <rect x="588" y="150" width="48" height="11" rx="5.5" fill="#d8def3"/>
+        <rect x="530" y="194" width="90" height="14" rx="7" fill="#d3daf0"/>
+        <path d="M610 208l14 14 22-30" fill="none" stroke="#5b7bff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
       </g>
 
-      <path d="M286 180h24" stroke="#98a7ff" stroke-width="6" stroke-linecap="round"/>
-      <path d="M444 180h24" stroke="#98a7ff" stroke-width="6" stroke-linecap="round"/>
+      <path d="M276 180h28" stroke="#8e97ff" stroke-width="6" stroke-linecap="round"/>
+      <path d="M444 180h28" stroke="#8e97ff" stroke-width="6" stroke-linecap="round"/>
 
-      <g opacity="0.88">
-        <circle cx="360" cy="292" r="9" fill="#8b5cff"/>
-        <circle cx="392" cy="292" r="9" fill="#4f8cff"/>
-        <circle cx="424" cy="292" r="9" fill="#8b5cff"/>
+      <g opacity="0.9">
+        <circle cx="360" cy="292" r="9" fill="#8b63ff"/>
+        <circle cx="392" cy="292" r="9" fill="#6290ff"/>
+        <circle cx="424" cy="292" r="9" fill="#8b63ff"/>
       </g>
     </svg>
   `;
   return card;
 }
 
-function infoChip(text) {
-  const chip = el("div", "intro__chip");
-  chip.appendChild(el("span", "intro__chipDot"));
-  chip.appendChild(el("span", "intro__chipText", { text }));
-  return chip;
-}
-
-function featureRow(text) {
-  const row = el("div", "intro__row");
+function pointRow(text) {
+  const row = el("div", "intro__point");
   row.appendChild(checkMini());
-  row.appendChild(el("div", "intro__rowText", { text }));
+  row.appendChild(el("div", "intro__pointText", { text }));
   return row;
 }
 
@@ -332,19 +316,8 @@ function checkMini() {
   const wrap = el("span", "intro__mini");
   wrap.innerHTML = `
     <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-      <circle cx="10" cy="10" r="9" fill="#e9f7ef"></circle>
-      <path d="M6 10.3l2.4 2.5L14.3 7" fill="none" stroke="#2ca36b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-    </svg>
-  `;
-  return wrap;
-}
-
-function shieldMini() {
-  const wrap = el("span", "intro__shield");
-  wrap.innerHTML = `
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-      <path d="M12 3l7 3v5c0 5.2-3.1 8.6-7 10-3.9-1.4-7-4.8-7-10V6l7-3z" fill="#eef1ff"></path>
-      <path d="M8 12.4l2.2 2.2L16 8.8" fill="none" stroke="#6f5cff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+      <circle cx="10" cy="10" r="9" fill="#e8f7ef"></circle>
+      <path d="M6 10.3l2.4 2.5L14.3 7" fill="none" stroke="#24a466" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
     </svg>
   `;
   return wrap;
