@@ -153,6 +153,12 @@
   all: revert;
 }
 
+.intro__point {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
 .intro__cta {
   width: min(880px, 100%);
   margin: 2px auto 0;
