@@ -12,16 +12,14 @@ export function Header({ phase, progress, donutActive = false }) {
       phase === "connecting"
         ? "Подключение"
         : phase === "intro"
-          ? "HubBot Control"
+          ? ""
           : "Выбор сообщества",
   });
 
   const subtitleText =
     phase === "connecting"
       ? (progress?.label || "Подготавливаю…")
-      : phase === "intro"
-        ? "Сначала покажем, что умеет сервис и зачем дальше понадобится доступ VK"
-        : "Подключим HubBot за ~15 секунд — всё настроим автоматически";
+      : "Подключим HubBot за ~15 секунд — всё настроим автоматически";
 
   const subtitle = el("div", "header__subtitle", { text: subtitleText });
 
@@ -62,7 +60,7 @@ function SubscriptionChip({ active }) {
 
   const text = el("span", "subchip__text", {
     text: unknown
-      ? "Подписка проверится после продолжения"
+      ? "Подписка проверяется"
       : active
         ? "Подписка подключена"
         : "Подписка не подключена",
@@ -197,7 +195,7 @@ export function GroupCard({ group, isConnected, isBusy, donutActive }) {
   return card;
 }
 
-export function IntroState({ hasSavedConnections = false, howItWorksUrl = "" }) {
+export function IntroState({ hasSavedConnections = false }) {
   const wrap = el("div", "intro");
 
   const hero = el("div", "intro__hero");
@@ -209,22 +207,22 @@ export function IntroState({ hasSavedConnections = false, howItWorksUrl = "" }) 
 
   const text = el("div", "intro__text", {
     text:
-      "HubBot автоматически включает сообщения сообщества, возможности ботов и стабильную связь для новых сообщений. Доступы запрашиваются только после продолжения и только когда они действительно нужны.",
+      "HubBot автоматически включает сообщения сообщества, возможности ботов и стабильную связь для новых сообщений. Сначала вы увидите описание сервиса, а доступы запросим только на следующем шаге.",
   });
 
   hero.appendChild(title);
   hero.appendChild(text);
 
   const chips = el("div", "intro__chips");
-  chips.appendChild(infoChip("Права не запрашиваются при открытии"));
-  chips.appendChild(infoChip("Проверим VK Donut после продолжения"));
-  chips.appendChild(infoChip("Подключение занимает около 15 секунд"));
+  chips.appendChild(infoChip("Никаких запросов прав при открытии"));
+  chips.appendChild(infoChip("Доступ появится только после продолжения"));
+  chips.appendChild(infoChip("Подключение займёт около 15 секунд"));
   hero.appendChild(chips);
 
   const card = el("div", "intro__card");
   card.appendChild(featureRow("Покажем ваши сообщества, которыми вы управляете"));
-  card.appendChild(featureRow("Проверим, доступно ли подключение по подписке"));
   card.appendChild(featureRow("После выбора сообщества отдельно попросим доступ VK"));
+  card.appendChild(featureRow("Автоматически настроим сообщения, чат-бота и связь"));
 
   if (hasSavedConnections) {
     const saved = el("div", "intro__saved", {
@@ -238,23 +236,13 @@ export function IntroState({ hasSavedConnections = false, howItWorksUrl = "" }) 
   note.appendChild(
     el("div", "intro__noteText", {
       text:
-        "Сначала вы видите описание сервиса, а запрос доступа появляется только на следующем шаге — это безопасный и прозрачный сценарий подключения.",
+        "Прозрачный сценарий подключения: сначала информация о сервисе, затем — запрос доступа только в нужный момент.",
     })
   );
 
   wrap.appendChild(hero);
   wrap.appendChild(card);
   wrap.appendChild(note);
-
-  if (howItWorksUrl) {
-    const link = el("a", "intro__link", {
-      href: howItWorksUrl,
-      target: "_blank",
-      rel: "noopener noreferrer",
-      text: "Подробнее о том, как это работает",
-    });
-    wrap.appendChild(link);
-  }
 
   return wrap;
 }

@@ -58,6 +58,7 @@ export function renderApp(viewRoot, state, actions) {
   }
 
   ui.layout.classList.toggle("is-busy", !!state.busy);
+  ui.layout.classList.toggle("layout--intro", state.phase === "intro");
 }
 
 function createShell(viewRoot, state, actions) {
@@ -114,15 +115,19 @@ function createShell(viewRoot, state, actions) {
     refreshBtn,
     listSlot,
     overlaySlot,
+    footer,
     lastListKey: "",
   };
 }
 
 function updateHeader(ui, state) {
   clear(ui.headerSlot);
-  ui.headerSlot.appendChild(
-    Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
-  );
+
+  if (state.phase !== "intro") {
+    ui.headerSlot.appendChild(
+      Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
+    );
+  }
 
   const shouldHideSearch =
     state.phase === "intro" ||
@@ -131,6 +136,7 @@ function updateHeader(ui, state) {
     state.phase === "error";
 
   ui.searchWrap.style.display = shouldHideSearch ? "none" : "";
+  ui.footer.style.display = state.phase === "intro" ? "none" : "";
 }
 
 function showIntro(ui, state, actions) {
@@ -139,15 +145,17 @@ function showIntro(ui, state, actions) {
 
   const intro = IntroState({
     hasSavedConnections: (state.connected || []).length > 0,
-    howItWorksUrl: actions.howItWorksUrl,
   });
 
   const btn = PrimaryButton({ label: "Продолжить" });
+  btn.classList.add("intro__cta");
   btn.addEventListener("click", actions.continueFromIntro);
 
-  ui.listSlot.appendChild(intro);
-  ui.listSlot.appendChild(el("div", "spacer"));
-  ui.listSlot.appendChild(btn);
+  const wrap = el("div", "introScreen");
+  wrap.appendChild(intro);
+  wrap.appendChild(btn);
+
+  ui.listSlot.appendChild(wrap);
 }
 
 function showLoading(ui) {
