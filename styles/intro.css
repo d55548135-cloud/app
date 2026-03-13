@@ -148,12 +148,12 @@
   position: relative;
   display: block;
   margin-top: 14px;
-  padding: 13px 14px 13px 18px;
+  padding: 14px 14px 14px 18px;
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(92, 122, 255, 0.08) 0%, rgba(92, 122, 255, 0.05) 100%);
   border: 1px solid rgba(109, 137, 255, 0.10);
   color: #aebdff;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
   font-weight: 600;
   box-shadow:
@@ -282,9 +282,9 @@
 
   .intro__saved {
     margin-top: 10px;
-    padding: 10px 12px 10px 14px;
+    padding: 14px 12px 14px 14px;
     border-radius: 14px;
-    font-size: 11px;
+    font-size: 13px;
     line-height: 1.4;
   }
 
@@ -353,8 +353,8 @@
 
   .intro__saved {
     margin-top: 10px;
-    padding: 10px 12px 10px 14px;
-    font-size: 11px;
+    padding: 14px 12px 14px 14px;
+    font-size: 13px;
     line-height: 1.4;
   }
 
