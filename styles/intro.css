@@ -28,7 +28,7 @@
   height: 96vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-evenly;
   padding: 12px 18px 10px;
   overflow: hidden;
   box-sizing: border-box;
