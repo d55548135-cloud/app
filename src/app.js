@@ -1,95 +1,67 @@
-import { CONFIG } from "./config.js";
-import { checkDonut } from "./services/donut.js";
-import { vkInit, vkGetUserToken, vkGroupsGetAdmin } from "./api/vk.js";
-import { Store } from "./state/store.js";
-import { storageLoadConnections } from "./services/storage.js";
-import { connectFlow, CONNECT_ERRORS } from "./services/connect.js";
-import { renderApp } from "./ui/render.js";
-import { mountToast } from "./ui/toast.js";
-import { mountModal } from "./ui/modal.js";
-import { debounce } from "./utils/debounce.js";
-import { log } from "./utils/logger.js";
-import { buildSuccessContent } from "./ui/success_content.js";
+import { CONFIG } from "../config.js";
+import {
+  vkGetCommunityToken,
+  vkGroupsSetSettings,
+  vkGroupsSetLongPollSettings,
+} from "../api/vk.js";
+import { storageLoadConnections, storageSaveConnections } from "./storage.js";
+import { sleep } from "../utils/async.js";
 
-const store = new Store({
-  phase: "boot",
-  groups: [],
-  filteredGroups: [],
-  connected: [],
-  selectedGroupId: null,
-  progress: { step: 0, label: "", percent: 0 },
-  search: "",
-  error: null,
-  busy: false,
-  refreshing: false,
-  donutActive: false,
-  donutCheckedAt: null,
-  permissionGate: null,
-  introState: "default", // default | auth_denied
-});
+export const CONNECT_ERRORS = {
+  PERMISSION_DENIED: "PERMISSION_DENIED",
+};
 
-let progressEngine = null;
-
-export async function initApp() {
-  const root = document.getElementById("app");
-
-  root.innerHTML = `
-    <div id="app-view"></div>
-    <div id="portal-toast"></div>
-    <div id="portal-modal"></div>
-  `;
-
-  const viewRoot = document.getElementById("app-view");
-  const toastRoot = document.getElementById("portal-toast");
-  const modalRoot = document.getElementById("portal-modal");
-
-  mountToast(toastRoot, { muteMs: 900, dedupeMs: 1200, replace: true });
-  mountModal(modalRoot);
-
-  store.subscribe(() => renderApp(viewRoot, store.getState(), actions));
-  renderApp(viewRoot, store.getState(), actions);
-
-  document.addEventListener("visibilitychange", () => {
-    const state = store.getState();
-    if (document.visibilityState === "visible" && state.phase === "ready") {
-      actions.refreshConnections(true);
-    }
-  });
-
-  store.setState({
-    phase: "loading",
-    error: null,
-  });
+export async function connectFlow({ groupId, groupName, onProgress }) {
+  if (window.__hubbot_connect_lock) {
+    throw new Error("Подключение уже выполняется.");
+  }
+  window.__hubbot_connect_lock = true;
 
   try {
-    await vkInit();
+    onProgress?.(1, `Ожидаю подтверждение доступа к «${groupName}»`, 39);
 
-    const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
+    let token;
+    try {
+      token = await vkGetCommunityToken({
+        appId: CONFIG.APP_ID,
+        groupId,
+        scope: CONFIG.COMMUNITY_SCOPE,
+      });
+    } catch (e) {
+      if (isCommunityPermissionDeniedError(e)) {
+        const err = new Error(CONNECT_ERRORS.PERMISSION_DENIED);
+        err.code = CONNECT_ERRORS.PERMISSION_DENIED;
+        throw err;
+      }
+      throw e;
+    }
 
-    store.setState({
-      connected,
-      phase: "intro",
-      error: null,
-      busy: false,
-      refreshing: false,
-      progress: { step: 0, label: "", percent: 0 },
-      permissionGate: null,
-    });
+    await sleep(180);
 
-    root.setAttribute("aria-busy", "false");
-  } catch (e) {
-    log("init error", e);
-    store.setState({
-      phase: "error",
-      error: normalizeError(e, "Не удалось запустить приложение. Попробуйте ещё раз."),
-      busy: false,
-      refreshing: false,
-    });
-    root.setAttribute("aria-busy", "false");
+    onProgress?.(2, "Настраиваю чат-бота в сообществе", 60);
+    await sleep(250);
+    await vkGroupsSetSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
+
+    await sleep(220);
+
+    onProgress?.(3, "Включаю стабильную связь для сообщений", 94);
+    await sleep(250);
+    await vkGroupsSetLongPollSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
+
+    await sleep(180);
+
+    onProgress?.(4, "Завершаю подключение", 97);
+    await sleep(180);
+
+    await saveTokenToStorage(groupId, token);
+
+    return { ok: true };
+  } finally {
+    window.__hubbot_connect_lock = false;
   }
 }
 
-function isUserTokenDeniedError(err) {
+function isCommunityPermissionDeniedError(err) {
   if (!err) return false;
 
   const msg =
@@ -110,504 +82,31 @@ function isUserTokenDeniedError(err) {
   return (
     s.includes("user denied") ||
     s.includes("access denied") ||
+    s.includes("permission denied") ||
+    s.includes("denied") ||
+    s.includes("cancel") ||
+    s.includes("client_error") ||
     s.includes('"error_code":4') ||
     s.includes('"error_reason":"user denied"') ||
-    s.includes("client_error")
+    s.includes("доступ не предоставлен") ||
+    s.includes("отмен")
   );
 }
 
-async function loadAuthorizedData() {
-  const root = document.getElementById("app");
-  root?.setAttribute("aria-busy", "true");
+async function saveTokenToStorage(groupId, token) {
+  const list = await storageLoadConnections(CONFIG.STORAGE_KEY);
+  const now = Date.now();
 
-  store.setState({
-    phase: "loading",
-    error: null,
-    busy: true,
-    refreshing: false,
-  });
+  const exists = list.some((x) => x.id === groupId);
+  const next = exists
+    ? list.map((x) => (x.id === groupId ? { ...x, token, updatedAt: now } : x))
+    : [{ id: groupId, token, createdAt: now }, ...list];
 
-  try {
-    const userToken = await vkGetUserToken(CONFIG.APP_ID, CONFIG.USER_SCOPE);
-
-    const [donutActive, groups] = await Promise.all([
-      checkDonut({
-        userToken,
-        groupId: CONFIG.BOT_GROUP_ID,
-      }),
-      vkGroupsGetAdmin(userToken, CONFIG.VK_API_VERSION),
-    ]);
-
-    store.setState({
-      phase: "ready",
-      groups,
-      filteredGroups: groups,
-      donutActive,
-      donutCheckedAt: Date.now(),
-      error: null,
-      busy: false,
-      refreshing: false,
-      progress: { step: 0, label: "", percent: 0 },
-      permissionGate: null,
-      introState: "default",
-    });
-
-    root?.setAttribute("aria-busy", "false");
-  } catch (e) {
-    const denied = isUserTokenDeniedError(e);
-
-    if (denied) {
-      store.setState({
-        phase: "intro",
-        busy: false,
-        refreshing: false,
-        error: null,
-        introState: "auth_denied",
-      });
-
-      root?.setAttribute("aria-busy", "false");
-      return;
-    }
-
-    log("loadAuthorizedData error", e);
-    store.setState({
-      phase: "error",
-      error: normalizeError(
-        e,
-        "Не удалось получить доступ к списку сообществ. Нажмите «Повторить» и разрешите доступ."
-      ),
-      busy: false,
-      refreshing: false,
-      introState: "default",
-    });
-    root?.setAttribute("aria-busy", "false");
-  }
+  await storageSaveConnections(CONFIG.STORAGE_KEY, next);
 }
 
-async function syncConnectionsFromStorage({ silent = false, showUpToDate = false } = {}) {
-  try {
-    const next = await storageLoadConnections(CONFIG.STORAGE_KEY);
-    const prev = store.getState().connected;
-
-    const prevKey = (prev || []).map((x) => x.id).join(",");
-    const nextKey = (next || []).map((x) => x.id).join(",");
-
-    if (prevKey !== nextKey) {
-      store.setState({ connected: next });
-      if (!silent) window.__hubbot_toast?.("Список подключений обновлён", "success");
-    } else {
-      if (!silent && showUpToDate) window.__hubbot_toast?.("Уже актуально", "info");
-    }
-  } catch {
-    if (!silent) window.__hubbot_toast?.("Не удалось обновить список", "error");
-  }
-}
-
-const actions = {
-  retry: () => initApp(),
-
-  continueFromIntro: async () => {
-    const state = store.getState();
-    if (state.busy || state.refreshing) return;
-
-    store.setState({ introState: "default" });
-    await loadAuthorizedData();
-  },
-
-  howItWorksUrl: CONFIG.HOW_IT_WORKS_URL,
-
-  refreshConnections: async (silent = false) => {
-    const state = store.getState();
-    if (state.refreshing || state.busy || state.phase !== "ready") return;
-
-    store.setState({ refreshing: true });
-    await syncConnectionsFromStorage({ silent, showUpToDate: !silent });
-    store.setState({ refreshing: false });
-  },
-
-  setSearchDebounced: debounce((value) => {
-    store.setState({ search: value });
-    filterGroups();
-  }, 120),
-
-  async openChat() {
-    const url = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
-
-    try {
-      if (window.vkBridge?.send) {
-        await window.vkBridge.send("VKWebAppOpenURL", { url });
-        return;
-      }
-    } catch (e) {
-      const code = e?.error_data?.error_code;
-      if (CONFIG.DEBUG && code !== 6) {
-        console.warn("VKWebAppOpenURL failed", e);
-      }
-    }
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  },
-
-  openDonut() {
-    const url = `https://vk.com/donut/hubbot`;
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  },
-
-  async onGroupClick(groupId) {
-    const state = store.getState();
-
-    if (state.busy || state.refreshing) return;
-
-    store.setState({
-      selectedGroupId: groupId,
-      permissionGate: null,
-    });
-
-    const group = state.groups.find((g) => g.id === groupId);
-    if (!group) return;
-
-    const isConnected = state.connected.some((x) => x.id === groupId);
-
-    if (isConnected) {
-      window.__hubbot_modal_open?.({
-        title: group.name,
-        subtitle: "Это сообщество уже подключено",
-        actions: [
-          {
-            id: "open_chat",
-            label: "Перейти в чат управления Hubby",
-            type: "primary",
-            onClick: () => actions.openChat(),
-          },
-        ],
-      });
-      return;
-    }
-
-    if (!state.donutActive) {
-      window.__hubbot_modal_open?.({
-        title: "Подключение по подписке",
-        subtitle:
-          "Подписка HubBot позволяет подключить до 2 сообществ и управлять ими через чат-бота.",
-        actions: [
-          {
-            id: "donut",
-            label: "Оформить подписку VK Donut",
-            type: "primary",
-            onClick: () => actions.openDonut(),
-          },
-        ],
-      });
-      return;
-    }
-
-    window.__hubbot_modal_open?.({
-      title: `Подключить «${group.name}»?`,
-      subtitle:
-        "Сейчас VK запросит доступ к настройкам выбранного сообщества. Это нужно, чтобы включить сообщения, возможности ботов и стабильную связь для новых сообщений.",
-      actions: [
-        {
-          id: "connect",
-          label: "Продолжить подключение",
-          type: "primary",
-          onClick: () => actions.startConnect(groupId),
-        },
-      ],
-    });
-  },
-
-  async retryCommunityPermission(groupId) {
-    const state = store.getState();
-    if (state.busy || state.refreshing) return;
-
-    const group = state.groups.find((g) => g.id === groupId);
-    if (!group) return;
-
-    store.setState({ permissionGate: null });
-    await actions.startConnect(groupId);
-  },
-
-  async startConnect(groupId) {
-    const state = store.getState();
-    if (state.busy || state.refreshing) return;
-
-    const group = state.groups.find((g) => g.id === groupId);
-    if (!group) return;
-
-    const max = Number.isFinite(CONFIG.MAX_CONNECTIONS)
-      ? CONFIG.MAX_CONNECTIONS
-      : (Number.isFinite(CONFIG.MAX_CONNECTED) ? CONFIG.MAX_CONNECTED : 2);
-
-    const alreadyConnected = state.connected.some((x) => x.id === groupId);
-
-    if (!alreadyConnected && state.connected.length >= max) {
-      window.__hubbot_modal_open?.({
-        title: "Достигнут лимит подключений",
-        subtitle:
-          `Можно подключить максимум ${max} сообществ(а).\n` +
-          "Чтобы подключить новое — отключите одно из текущих в чате управления Hubby.",
-        actions: [
-          {
-            id: "open_chat",
-            label: "Открыть управление Hubby",
-            type: "primary",
-            onClick: () => actions.openChat(),
-          },
-        ],
-      });
-      return;
-    }
-
-    stopProgressEngine();
-    progressEngine = createProgressEngine((patch) => store.setState(patch));
-    progressEngine.start();
-
-    store.setState({
-      phase: "connecting",
-      busy: true,
-      error: null,
-      permissionGate: null,
-      progress: { step: 1, label: "Начинаю подключение…", percent: 0 },
-    });
-
-    try {
-      await connectFlow({
-        groupId,
-        groupName: group.name,
-        onProgress: (step, label, capPercent) => {
-          progressEngine.setStep(step, label, capPercent);
-        },
-      });
-
-      const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
-
-      progressEngine.finishTo100(() => {
-        stopProgressEngine();
-
-        store.setState({
-          phase: "ready",
-          connected,
-          busy: false,
-          progress: { step: 0, label: "", percent: 0 },
-          error: null,
-          permissionGate: null,
-        });
-
-        const contentNode = buildSuccessContent(group.name);
-
-        window.__hubbot_modal_success?.({
-          title: "Успешно подключено",
-          subtitle: `Сообщество «${group.name}» готово к работе.`,
-          contentNode,
-          actions: [
-            {
-              id: "open_chat",
-              label: "Перейти в чат управления Hubby",
-              type: "primary",
-              onClick: () => actions.openChat(),
-            },
-          ],
-        });
-
-        window.__hubbot_toast?.("Подключение завершено ✅", "success");
-      });
-    } catch (e) {
-      stopProgressEngine();
-
-      if (e?.code === CONNECT_ERRORS.PERMISSION_DENIED || e?.message === CONNECT_ERRORS.PERMISSION_DENIED) {
-        store.setState({
-          phase: "ready",
-          busy: false,
-          error: null,
-          progress: { step: 0, label: "", percent: 0 },
-          permissionGate: {
-            type: "community_denied",
-            groupId,
-            groupName: group.name,
-          },
-        });
-        return;
-      }
-
-      store.setState({
-        phase: "ready",
-        busy: false,
-        error: normalizeError(e, "Не удалось подключить сообщество. Попробуйте ещё раз."),
-        progress: { step: 0, label: "", percent: 0 },
-        permissionGate: null,
-      });
-      window.__hubbot_toast?.("Ошибка подключения", "error");
-    }
-  },
-};
-
-function filterGroups() {
-  const { groups, search } = store.getState();
-  const q = (search || "").trim().toLowerCase();
-
-  if (!q) {
-    store.setState({ filteredGroups: groups });
-    return;
-  }
-
-  store.setState({
-    filteredGroups: groups.filter((g) => (g.name || "").toLowerCase().includes(q)),
-  });
-}
-
-function normalizeError(err, fallback) {
-  if (!err) return fallback;
-  if (typeof err === "string") return err;
-  if (err?.message) return err.message;
-  try {
-    return JSON.stringify(err);
-  } catch {
-    return fallback;
-  }
-}
-
-function stopProgressEngine() {
-  if (progressEngine) {
-    progressEngine.stop();
-    progressEngine = null;
-  }
-}
-
-function createProgressEngine(emit) {
-  let raf = null;
-  let running = false;
-
-  let percent = 0;
-  let cap = 20;
-  let desiredMaxStep = 1;
-
-  const stepLabels = {
-    1: "Начинаю…",
-    2: "Подключаю чат-бот…",
-    3: "Включаю связь…",
-    4: "Готово",
-  };
-
-  let shownStep = 1;
-  let shownLabel = stepLabels[1];
-
-  const speed = 22;
-  const maxBeforeFinish = 97;
-
-  const STEP_MIN_PERCENT = {
-    1: 0,
-    2: 39,
-    3: 60,
-    4: 94,
-  };
-
-  let last = performance.now();
-
-  function computeShownStep(p) {
-    let s = 1;
-    for (let i = 2; i <= desiredMaxStep; i++) {
-      const minP = STEP_MIN_PERCENT[i] ?? 0;
-      if (p >= minP - 0.5) s = i;
-    }
-    return s;
-  }
-
-  function loop(now) {
-    if (!running) return;
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
-
-    const target = Math.min(cap, maxBeforeFinish);
-
-    if (percent < target) {
-      const distance = target - percent;
-      const ease = Math.max(0.22, Math.min(1, distance / 22));
-      percent += speed * ease * dt;
-      percent = Math.min(percent, target);
-    }
-
-    shownStep = computeShownStep(percent);
-    shownLabel = stepLabels[shownStep] || shownLabel;
-
-    emit({
-      progress: {
-        step: shownStep,
-        label: shownLabel,
-        percent: Math.round(percent),
-      },
-    });
-
-    raf = requestAnimationFrame(loop);
-  }
-
-  return {
-    start() {
-      running = true;
-      last = performance.now();
-      raf = requestAnimationFrame(loop);
-    },
-
-    stop() {
-      running = false;
-      if (raf) cancelAnimationFrame(raf);
-      raf = null;
-    },
-
-    setStep(nextStep, nextLabel, nextCap) {
-      const s = Math.max(1, Math.min(4, Number(nextStep) || 1));
-      desiredMaxStep = Math.max(desiredMaxStep, s);
-
-      if (nextLabel) stepLabels[s] = nextLabel;
-
-      const minCap = STEP_MIN_PERCENT[s] ?? 0;
-      if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap, minCap);
-      else cap = Math.max(cap, minCap);
-    },
-
-    finishTo100(onDone) {
-      this.stop();
-
-      desiredMaxStep = Math.max(desiredMaxStep, 4);
-      stepLabels[4] = "Готово";
-
-      const start = percent;
-      const duration = 1400;
-      const startTime = performance.now();
-
-      const tick = (now) => {
-        const t = Math.min(1, (now - startTime) / duration);
-        const eased = 1 - Math.pow(1 - t, 4);
-        percent = start + (100 - start) * eased;
-
-        shownStep = computeShownStep(percent);
-        shownLabel = stepLabels[shownStep] || shownLabel;
-
-        emit({
-          progress: {
-            step: shownStep,
-            label: shownLabel,
-            percent: Math.round(percent),
-          },
-        });
-
-        if (t < 1) requestAnimationFrame(tick);
-        else onDone?.();
-      };
-
-      requestAnimationFrame(tick);
-    },
-  };
+export async function disconnectGroup(groupId) {
+  const list = await storageLoadConnections(CONFIG.STORAGE_KEY);
+  const next = list.filter((x) => x.id !== groupId);
+  await storageSaveConnections(CONFIG.STORAGE_KEY, next);
 }
