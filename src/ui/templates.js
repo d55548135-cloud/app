@@ -1,5 +1,6 @@
 import { el } from "./dom.js";
 import { Icon } from "./icons.js";
+import introBannerUrl from "../assets/intro-banner.jpg";
 
 export function Header({ phase, progress, donutActive = false }) {
   const wrap = el("div", "header");
@@ -240,12 +241,14 @@ export function IntroState({ hasSavedConnections = false }) {
 
 function buildIntroIllustration() {
   const card = el("div", "intro__scene");
+
   const img = el("img", "intro__sceneImage", {
-    src: "./assets/intro-banner.jpg",
+    src: introBannerUrl,
     alt: "",
     loading: "eager",
     decoding: "async",
   });
+
   card.appendChild(img);
   return card;
 }
