@@ -24,7 +24,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 24px 18px 18px;
+  padding: 26px 18px 20px;
   overflow: hidden;
 }
 
@@ -32,7 +32,19 @@
   width: min(880px, 100%);
   margin: 0 auto;
   display: grid;
-  gap: 16px;
+  gap: 18px;
+}
+
+.intro__shell {
+  display: block;
+}
+
+.intro__visual {
+  display: block;
+}
+
+.intro__content {
+  display: block;
 }
 
 .intro__hero {
@@ -51,7 +63,7 @@
   width: 100%;
   border-radius: 22px;
   overflow: hidden;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
   background: linear-gradient(180deg, #eef2fb 0%, #e8edf8 100%);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.65),
@@ -66,7 +78,7 @@
 
 .intro__title {
   display: block;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   font-size: clamp(24px, 4vw, 32px);
   line-height: 1.08;
   font-weight: 800;
@@ -76,26 +88,25 @@
 
 .intro__text {
   display: block;
-  margin: 0;
+  margin: 0 0 18px;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.62;
   color: #97a6c4;
 }
 
+.intro__points,
 .intro__card {
   display: grid;
   gap: 10px;
-  padding: 0;
   margin: 0;
-  background: none;
-  border: 0;
-  box-shadow: none;
+  padding: 0;
 }
 
+.intro__point,
 .intro__row {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
   padding: 12px 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
@@ -103,12 +114,13 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
 }
 
+.intro__pointText,
 .intro__rowText {
   display: block;
   flex: 1 1 auto;
   min-width: 0;
   font-size: 14px;
-  line-height: 1.45;
+  line-height: 1.48;
   font-weight: 600;
   color: #e6ecff;
 }
@@ -125,14 +137,14 @@
 
 .intro__saved {
   display: block;
-  margin-top: 2px;
+  margin-top: 14px;
   padding: 12px 14px;
   border-radius: 16px;
   background: rgba(92, 122, 255, 0.10);
   border: 1px solid rgba(109, 137, 255, 0.12);
   color: #9cb3ff;
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.5;
   font-weight: 700;
 }
 
@@ -142,21 +154,6 @@
 .intro__link,
 .intro__shield {
   display: none !important;
-}
-
-.intro__shell,
-.intro__visual,
-.intro__content,
-.intro__points,
-.intro__point,
-.intro__pointText {
-  all: revert;
-}
-
-.intro__point {
-  display: flex;
-  gap: 5px;
-  align-items: center;
 }
 
 .intro__cta {
@@ -187,12 +184,12 @@
 
 @media (max-width: 720px) {
   .introScreen {
-    padding: 14px 14px 12px;
+    padding: 16px 14px 12px;
   }
 
   .intro {
     width: min(100%, 680px);
-    gap: 12px;
+    gap: 14px;
   }
 
   .intro__hero {
@@ -202,32 +199,38 @@
 
   .intro__scene {
     border-radius: 18px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
 
   .intro__title {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     font-size: 22px;
   }
 
   .intro__text {
+    margin-bottom: 14px;
     font-size: 14px;
   }
 
+  .intro__points,
   .intro__card {
     gap: 8px;
   }
 
+  .intro__point,
   .intro__row {
+    gap: 10px;
     padding: 11px 12px;
     border-radius: 14px;
   }
 
+  .intro__pointText,
   .intro__rowText {
     font-size: 13px;
   }
 
   .intro__saved {
+    margin-top: 12px;
     padding: 11px 12px;
     border-radius: 14px;
     font-size: 12px;
@@ -243,42 +246,48 @@
 
 @media (max-height: 760px) and (min-width: 721px) {
   .introScreen {
-    padding: 12px 18px;
+    padding: 14px 18px;
   }
 
   .intro {
-    gap: 10px;
+    gap: 12px;
   }
 
   .intro__hero {
-    padding: 12px;
+    padding: 14px;
   }
 
   .intro__scene {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   .intro__title {
+    margin-bottom: 10px;
     font-size: 26px;
   }
 
   .intro__text {
+    margin-bottom: 14px;
     font-size: 14px;
   }
 
+  .intro__points,
   .intro__card {
     gap: 8px;
   }
 
+  .intro__point,
   .intro__row {
     padding: 10px 12px;
   }
 
+  .intro__pointText,
   .intro__rowText {
     font-size: 13px;
   }
 
   .intro__saved {
+    margin-top: 10px;
     padding: 10px 12px;
   }
 
