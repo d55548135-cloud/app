@@ -4,25 +4,30 @@ import { Icon } from "./icons.js";
 export function Header({ phase, progress, donutActive = false }) {
   const wrap = el("div", "header");
 
-  // top row (title + status chip)
   const topRow = el("div", "header__row");
 
   const top = el("div", "header__top");
   const title = el("div", "header__title", {
-    text: phase === "connecting" ? "Подключение" : "Выбор сообщества",
+    text:
+      phase === "connecting"
+        ? "Подключение"
+        : phase === "intro"
+          ? "HubBot Control"
+          : "Выбор сообщества",
   });
 
   const subtitleText =
     phase === "connecting"
       ? (progress?.label || "Подготавливаю…")
-      : "Подключим HubBot за ~15 секунд — всё настроим автоматически";
+      : phase === "intro"
+        ? "Сначала расскажем, что будет подключено и зачем нужны разрешения"
+        : "Подключим HubBot за ~15 секунд — всё настроим автоматически";
 
   const subtitle = el("div", "header__subtitle", { text: subtitleText });
 
   top.appendChild(title);
   top.appendChild(subtitle);
 
-  // ✅ Subscription chip (right top)
   const chip = SubscriptionChip({ active: !!donutActive });
 
   topRow.appendChild(top);
@@ -63,8 +68,6 @@ export function Stepper({ phase, step }) {
 
   labels.forEach((label, i) => {
     const idx = i + 1;
-
-    // ✅ active ровно когда step дошёл до idx
     const active = phase === "connecting" && step >= idx;
     const current = phase === "connecting" && step === idx;
 
@@ -104,11 +107,6 @@ export function ProgressBar({ phase, percent }) {
   return wrap;
 }
 
-
-/**
- * ✅ SearchBar with refresh icon button
- * returns: { wrap, input, refreshBtn }
- */
 export function SearchBar({ value, refreshing = false }) {
   const wrap = el("div", "searchbar");
 
@@ -124,7 +122,6 @@ export function SearchBar({ value, refreshing = false }) {
     "aria-label": "Обновить список",
   });
 
-  // SVG refresh
   btn.appendChild(Icon("refresh", "icon icon--refresh"));
 
   if (refreshing) btn.disabled = true;
@@ -151,7 +148,6 @@ export function GroupCard({ group, isConnected, isBusy, donutActive }) {
   const info = el("div", "card__info");
   const name = el("div", "card__name", { text: group.name });
 
-  // ✅ текст под названием
   let metaText = "Нажмите, чтобы подключить";
   if (isConnected) metaText = "Подключено";
   else if (!donutActive) metaText = "Доступно с подпиской";
@@ -166,9 +162,6 @@ export function GroupCard({ group, isConnected, isBusy, donutActive }) {
 
   const right = el("div", "card__right");
 
-  // ✅ badge: connected -> check
-  // ✅ no subscription + not connected -> lock
-  // ✅ else -> chevron
   const badge = el(
     "div",
     `badge ${
@@ -187,7 +180,6 @@ export function GroupCard({ group, isConnected, isBusy, donutActive }) {
   card.appendChild(left);
   card.appendChild(right);
 
-  // ✅ пометка для shake-анимации
   if (!isConnected && !donutActive) {
     card.dataset.locked = "1";
   } else {
@@ -208,6 +200,36 @@ export function SkeletonList({ count = 6 }) {
     sk.appendChild(lines);
     wrap.appendChild(sk);
   }
+  return wrap;
+}
+
+export function IntroState({ title, text }) {
+  const wrap = el("div", "empty");
+  const ico = el("div", "empty__icon");
+  ico.appendChild(Icon("bot", "icon icon--bot"));
+  wrap.appendChild(ico);
+
+  wrap.appendChild(el("div", "empty__title", { text: title }));
+  wrap.appendChild(el("div", "empty__text", { text }));
+
+  const hint = el("div", "empty__text", {
+    text:
+      "Мы не запрашиваем доступ к сообществу сразу. Разрешение появится только после выбора конкретного сообщества.",
+  });
+  wrap.appendChild(hint);
+
+  return wrap;
+}
+
+export function PermissionDeniedState({ title, text }) {
+  const wrap = el("div", "empty empty--error");
+  const ico = el("div", "empty__icon");
+  ico.appendChild(Icon("warning", "icon icon--warning"));
+  wrap.appendChild(ico);
+
+  wrap.appendChild(el("div", "empty__title", { text: title }));
+  wrap.appendChild(el("div", "empty__text", { text }));
+
   return wrap;
 }
 

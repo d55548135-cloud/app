@@ -3,7 +3,6 @@ import { withTimeout, retry } from "../utils/async.js";
 import { log } from "../utils/logger.js";
 
 export async function vkInit() {
-  // VKWebAppInit нужен всегда
   await withTimeout(window.vkBridge.send("VKWebAppInit"), CONFIG.TIMEOUT.BRIDGE, "VK init timeout");
 }
 
@@ -17,7 +16,7 @@ export async function vkGetUserToken(appId, scope) {
       ),
     { retries: 1, delayMs: 350 }
   );
-  console.log(res)
+
   if (!res?.access_token) throw new Error("Не удалось получить токен пользователя.");
   return res.access_token;
 }
@@ -93,7 +92,6 @@ export async function vkGroupsSetSettings({ groupId, token, v }) {
     group_id: groupId,
     messages: 1,
     bots_capabilities: 1,
-    // bots_start_button: 1 — можно включать, но не всем нужно
     access_token: token,
     v,
   });
@@ -107,7 +105,6 @@ export async function vkGroupsSetLongPollSettings({ groupId, token, v }) {
     message_new: 1,
     message_allow: 1,
     message_deny: 1,
-    // остальные события — по желанию
     access_token: token,
     v,
   });

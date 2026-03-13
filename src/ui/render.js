@@ -7,6 +7,8 @@ import {
   EmptyState,
   ErrorState,
   PrimaryButton,
+  IntroState,
+  PermissionDeniedState,
 } from "./templates.js";
 
 export function renderApp(viewRoot, state, actions) {
@@ -17,6 +19,11 @@ export function renderApp(viewRoot, state, actions) {
   const ui = viewRoot.__hb;
 
   updateHeader(ui, state);
+
+  if (state.phase === "intro") {
+    showIntro(ui, actions);
+    return;
+  }
 
   if (state.phase === "loading" || state.phase === "boot") {
     showLoading(ui);
@@ -30,12 +37,10 @@ export function renderApp(viewRoot, state, actions) {
 
   showMain(ui);
 
-  // update search value
   if (ui.searchInput && ui.searchInput.value !== (state.search || "")) {
     ui.searchInput.value = state.search || "";
   }
 
-  // refresh spinner state
   ui.refreshBtn?.classList.toggle("is-spinning", !!state.refreshing);
   if (ui.refreshBtn) ui.refreshBtn.disabled = !!state.refreshing || !!state.busy;
 
@@ -43,8 +48,10 @@ export function renderApp(viewRoot, state, actions) {
     state.filteredGroups,
     state.connected,
     state.busy,
-    !!state.donutActive
+    !!state.donutActive,
+    state.permissionGate
   );
+
   if (ui.lastListKey !== listKey) {
     ui.lastListKey = listKey;
     renderList(ui, state, actions);
@@ -64,6 +71,7 @@ function createShell(viewRoot, state, actions) {
   headerSlot.appendChild(
     Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
   );
+
   const { wrap: searchWrap, input: searchInput, refreshBtn } = SearchBar({
     value: state.search,
     refreshing: !!state.refreshing,
@@ -74,7 +82,6 @@ function createShell(viewRoot, state, actions) {
 
   const listSlot = el("div", "slot slot--list");
 
-  // footer (оставляем твой минимальный вариант)
   const footer = el("div", "footer");
   if (actions.howItWorksUrl) {
     const how = el("a", "footer__how", { text: "Как это работает?" });
@@ -116,6 +123,33 @@ function updateHeader(ui, state) {
   ui.headerSlot.appendChild(
     Header({ phase: state.phase, progress: state.progress, donutActive: state.donutActive })
   );
+
+  const hideSearch =
+    state.phase === "intro" ||
+    state.phase === "loading" ||
+    state.phase === "boot" ||
+    state.phase === "error";
+
+  ui.searchWrap.style.display = hideSearch ? "none" : "";
+}
+
+function showIntro(ui, actions) {
+  clear(ui.listSlot);
+  clear(ui.overlaySlot);
+
+  const intro = IntroState({
+    title: "Подключите HubBot к вашему сообществу",
+    text:
+      "Сначала покажем ваши сообщества, которыми вы управляете. " +
+      "После выбора сообщества отдельно попросим доступ, чтобы автоматически включить сообщения, бота и связь для новых сообщений.",
+  });
+
+  const btn = PrimaryButton({ label: "Продолжить" });
+  btn.addEventListener("click", actions.continueFromIntro);
+
+  ui.listSlot.appendChild(intro);
+  ui.listSlot.appendChild(el("div", "spacer"));
+  ui.listSlot.appendChild(btn);
 }
 
 function showLoading(ui) {
@@ -136,7 +170,7 @@ function showError(ui, state, actions) {
   ui.listSlot.appendChild(err);
 
   const btn = PrimaryButton({ label: "Повторить" });
-  btn.addEventListener("click", actions.retry);
+  btn.addEventListener("click", actions.continueFromIntro);
   ui.listSlot.appendChild(el("div", "spacer"));
   ui.listSlot.appendChild(btn);
 }
@@ -147,6 +181,24 @@ function showMain(ui) {
 
 function renderList(ui, state, actions) {
   clear(ui.listSlot);
+
+  if (state.permissionGate?.type === "community_denied") {
+    const denied = PermissionDeniedState({
+      title: "Доступ к сообществу не предоставлен",
+      text:
+        `Без этого разрешения HubBot не сможет подключить «${state.permissionGate.groupName}» и включить нужные настройки автоматически.`,
+    });
+
+    const btn = PrimaryButton({ label: "Запросить доступ ещё раз" });
+    btn.addEventListener("click", () =>
+      actions.retryCommunityPermission(state.permissionGate.groupId)
+    );
+
+    ui.listSlot.appendChild(denied);
+    ui.listSlot.appendChild(el("div", "spacer"));
+    ui.listSlot.appendChild(btn);
+    return;
+  }
 
   const groups = state.filteredGroups || [];
 
@@ -180,14 +232,12 @@ function renderList(ui, state, actions) {
       isBusy: state.busy,
       donutActive: !!state.donutActive,
     });
+
     card.addEventListener("click", () => {
-      // ✅ если карточка “залочена” — мягкий shake замка
       if (card.dataset.locked === "1") {
         const badge = card.querySelector(".badge");
         if (badge) {
           badge.classList.remove("is-shaking");
-          // reflow для перезапуска анимации
-          // eslint-disable-next-line no-unused-expressions
           badge.offsetWidth;
           badge.classList.add("is-shaking");
         }
@@ -195,14 +245,16 @@ function renderList(ui, state, actions) {
 
       actions.onGroupClick(g.id);
     });
+
     list.appendChild(card);
   });
 
   ui.listSlot.appendChild(list);
 }
 
-function buildListKey(groups, connected, busy, donutActive) {
+function buildListKey(groups, connected, busy, donutActive, permissionGate) {
   const g = (groups || []).map((x) => x.id).join(",");
   const c = (connected || []).map((x) => x.id).join(",");
-  return `${g}|${c}|${busy ? 1 : 0}|${donutActive ? 1 : 0}`;
+  const p = permissionGate ? `${permissionGate.type}:${permissionGate.groupId}` : "";
+  return `${g}|${c}|${busy ? 1 : 0}|${donutActive ? 1 : 0}|${p}`;
 }

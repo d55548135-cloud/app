@@ -3,7 +3,7 @@ import { checkDonut } from "./services/donut.js";
 import { vkInit, vkGetUserToken, vkGroupsGetAdmin } from "./api/vk.js";
 import { Store } from "./state/store.js";
 import { storageLoadConnections } from "./services/storage.js";
-import { connectFlow } from "./services/connect.js";
+import { connectFlow, CONNECT_ERRORS } from "./services/connect.js";
 import { renderApp } from "./ui/render.js";
 import { mountToast } from "./ui/toast.js";
 import { mountModal } from "./ui/modal.js";
@@ -21,9 +21,13 @@ const store = new Store({
   search: "",
   error: null,
   busy: false,
-  refreshing: false, // ✅ NEW
-  donutActive: false,       // ✅
-  donutCheckedAt: null,     // ✅
+  refreshing: false,
+
+  donutActive: false,
+  donutCheckedAt: null,
+
+  introAccepted: false,
+  permissionGate: null, // { type: "community_denied", groupId, groupName }
 });
 
 let progressEngine = null;
@@ -47,39 +51,31 @@ export async function initApp() {
   store.subscribe(() => renderApp(viewRoot, store.getState(), actions));
   renderApp(viewRoot, store.getState(), actions);
 
-  // ✅ авто-синк при возврате в мини-апп
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
+    const state = store.getState();
+    if (document.visibilityState === "visible" && state.phase === "ready") {
       actions.refreshConnections(true);
     }
   });
 
-  store.setState({ phase: "loading", error: null });
+  store.setState({
+    phase: "intro",
+    error: null,
+    busy: false,
+    refreshing: false,
+    permissionGate: null,
+  });
 
   try {
     await vkInit();
 
     const connected = await storageLoadConnections(CONFIG.STORAGE_KEY);
-    store.setState({ connected });
-
-    const userToken = await vkGetUserToken(CONFIG.APP_ID, CONFIG.USER_SCOPE);
-    const donutActive = await checkDonut({
-      userToken,
-      groupId: CONFIG.BOT_GROUP_ID,
-    });
-
-    const groups = await vkGroupsGetAdmin(userToken, CONFIG.VK_API_VERSION);
-
     store.setState({
-      phase: "ready",
-      groups,
-      filteredGroups: groups,
-      donutActive,
-      donutCheckedAt: Date.now(),
+      connected,
+      phase: "intro",
       error: null,
       busy: false,
       refreshing: false,
-      progress: { step: 0, label: "", percent: 0 },
     });
 
     root.setAttribute("aria-busy", "false");
@@ -87,11 +83,66 @@ export async function initApp() {
     log("init error", e);
     store.setState({
       phase: "error",
-      error: normalizeError(e, "Не удалось загрузить группы. Проверьте доступ и повторите."),
+      error: normalizeError(e, "Не удалось запустить приложение. Попробуйте ещё раз."),
       busy: false,
       refreshing: false,
     });
     root.setAttribute("aria-busy", "false");
+  }
+}
+
+async function loadUserContext() {
+  const root = document.getElementById("app");
+
+  store.setState({
+    phase: "loading",
+    error: null,
+    busy: true,
+    refreshing: false,
+    permissionGate: null,
+  });
+  root?.setAttribute("aria-busy", "true");
+
+  try {
+    const userToken = await vkGetUserToken(CONFIG.APP_ID, CONFIG.USER_SCOPE);
+
+    const [groups, donutActive] = await Promise.all([
+      vkGroupsGetAdmin(userToken, CONFIG.VK_API_VERSION),
+      checkDonut({
+        userToken,
+        groupId: CONFIG.BOT_GROUP_ID,
+      }),
+    ]);
+
+    store.setState({
+      phase: "ready",
+      groups,
+      filteredGroups: groups,
+      donutActive,
+      donutCheckedAt: Date.now(),
+      introAccepted: true,
+      error: null,
+      busy: false,
+      refreshing: false,
+      progress: { step: 0, label: "", percent: 0 },
+      permissionGate: null,
+    });
+
+    root?.setAttribute("aria-busy", "false");
+  } catch (e) {
+    log("loadUserContext error", e);
+
+    store.setState({
+      phase: "error",
+      error: normalizeError(
+        e,
+        "Не удалось получить доступ к списку сообществ. Нажмите «Повторить» и разрешите доступ."
+      ),
+      busy: false,
+      refreshing: false,
+    });
+
+    root?.setAttribute("aria-busy", "false");
   }
 }
 
@@ -107,7 +158,6 @@ async function syncConnectionsFromStorage({ silent = false, showUpToDate = false
       store.setState({ connected: next });
       if (!silent) window.__hubbot_toast?.("Список подключений обновлён", "success");
     } else {
-      // ✅ теперь “Уже актуально” показываем только если явно просили
       if (!silent && showUpToDate) window.__hubbot_toast?.("Уже актуально", "info");
     }
   } catch {
@@ -118,17 +168,21 @@ async function syncConnectionsFromStorage({ silent = false, showUpToDate = false
 const actions = {
   retry: () => initApp(),
 
+  continueFromIntro: async () => {
+    const state = store.getState();
+    if (state.busy) return;
+    await loadUserContext();
+  },
+
   howItWorksUrl: CONFIG.HOW_IT_WORKS_URL,
 
   refreshConnections: async (silent = false) => {
     const state = store.getState();
+    if (state.phase !== "ready") return;
     if (state.refreshing || state.busy) return;
 
     store.setState({ refreshing: true });
-
-    // если silent=false (ручное) — можно показать “уже актуально”
     await syncConnectionsFromStorage({ silent, showUpToDate: !silent });
-
     store.setState({ refreshing: false });
   },
 
@@ -140,23 +194,18 @@ const actions = {
   async openChat() {
     const url = `https://vk.com/im?sel=-${CONFIG.BOT_GROUP_ID}`;
 
-    // 1) Try bridge (some platforms don't support)
     try {
       if (window.vkBridge?.send) {
         await window.vkBridge.send("VKWebAppOpenURL", { url });
         return;
       }
     } catch (e) {
-      // error_code: 6 => Unsupported platform (expected)
       const code = e?.error_data?.error_code;
-
       if (CONFIG.DEBUG && code !== 6) {
         console.warn("VKWebAppOpenURL failed", e);
       }
-      // silent fallback
     }
 
-    // 2) Open as top-level tab (reliable)
     const a = document.createElement("a");
     a.href = url;
     a.target = "_blank";
@@ -178,13 +227,15 @@ const actions = {
     a.remove();
   },
 
-
   async onGroupClick(groupId) {
     const state = store.getState();
 
     if (state.busy || state.refreshing) return;
 
-    store.setState({ selectedGroupId: groupId });
+    store.setState({
+      selectedGroupId: groupId,
+      permissionGate: null,
+    });
 
     const group = state.groups.find((g) => g.id === groupId);
     if (!group) return;
@@ -224,6 +275,30 @@ const actions = {
       return;
     }
 
+    window.__hubbot_modal_open?.({
+      title: `Подключить «${group.name}»?`,
+      subtitle:
+        "Сейчас VK попросит разрешение на управление сообщением и настройками сообщества. " +
+        "Это нужно только для автоматического включения сообщений, возможностей бота и стабильной связи для новых сообщений.",
+      actions: [
+        {
+          id: "connect",
+          label: "Продолжить подключение",
+          type: "primary",
+          onClick: () => actions.startConnect(groupId),
+        },
+      ],
+    });
+  },
+
+  async retryCommunityPermission(groupId) {
+    const state = store.getState();
+    if (state.busy || state.refreshing) return;
+
+    const group = state.groups.find((g) => g.id === groupId);
+    if (!group) return;
+
+    store.setState({ permissionGate: null });
     await actions.startConnect(groupId);
   },
 
@@ -234,7 +309,6 @@ const actions = {
     const group = state.groups.find((g) => g.id === groupId);
     if (!group) return;
 
-    // ⚠️ у тебя в config MAX_CONNECTED, но в коде было MAX_CONNECTIONS — оставим безопасно:
     const max = Number.isFinite(CONFIG.MAX_CONNECTIONS)
       ? CONFIG.MAX_CONNECTIONS
       : (Number.isFinite(CONFIG.MAX_CONNECTED) ? CONFIG.MAX_CONNECTED : 2);
@@ -267,6 +341,7 @@ const actions = {
       phase: "connecting",
       busy: true,
       error: null,
+      permissionGate: null,
       progress: { step: 1, label: "Начинаю подключение…", percent: 0 },
     });
 
@@ -290,6 +365,7 @@ const actions = {
           busy: false,
           progress: { step: 0, label: "", percent: 0 },
           error: null,
+          permissionGate: null,
         });
 
         const contentNode = buildSuccessContent(group.name);
@@ -313,15 +389,19 @@ const actions = {
     } catch (e) {
       stopProgressEngine();
 
-      if (e?.code === "PERMISSION_DENIED" || e?.message === "PERMISSION_DENIED") {
+      if (e?.code === CONNECT_ERRORS.PERMISSION_DENIED || e?.message === CONNECT_ERRORS.PERMISSION_DENIED) {
         store.setState({
           phase: "ready",
           busy: false,
           error: null,
           progress: { step: 0, label: "", percent: 0 },
+          permissionGate: {
+            type: "community_denied",
+            groupId,
+            groupName: group.name,
+          },
         });
 
-        window.__hubbot_toast?.("Подключение отменено — доступ не предоставлен", "error");
         return;
       }
 
@@ -330,6 +410,7 @@ const actions = {
         busy: false,
         error: normalizeError(e, "Не удалось подключить сообщество. Попробуйте ещё раз."),
         progress: { step: 0, label: "", percent: 0 },
+        permissionGate: null,
       });
       window.__hubbot_toast?.("Ошибка подключения", "error");
     }
@@ -352,7 +433,11 @@ function normalizeError(err, fallback) {
   if (!err) return fallback;
   if (typeof err === "string") return err;
   if (err?.message) return err.message;
-  try { return JSON.stringify(err); } catch { return fallback; }
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return fallback;
+  }
 }
 
 function stopProgressEngine() {
@@ -368,11 +453,8 @@ function createProgressEngine(emit) {
 
   let percent = 0;
   let cap = 20;
-
-  // ✅ “логически доступные” шаги (могут стать 4 быстро)
   let desiredMaxStep = 1;
 
-  // ✅ подписи для каждого шага (берём те, что пришли из connectFlow)
   const stepLabels = {
     1: "Начинаю…",
     2: "Подключаю чат-бот…",
@@ -380,14 +462,12 @@ function createProgressEngine(emit) {
     4: "Готово",
   };
 
-  // ✅ что реально показываем в UI
   let shownStep = 1;
   let shownLabel = stepLabels[1];
 
   const speed = 22;
   const maxBeforeFinish = 97;
 
-  // пороги (как у тебя были cap’ы в connectFlow)
   const STEP_MIN_PERCENT = {
     1: 0,
     2: 39,
@@ -398,9 +478,6 @@ function createProgressEngine(emit) {
   let last = performance.now();
 
   function computeShownStep(p) {
-    // показываем максимальный шаг, который:
-    // 1) не выше desiredMaxStep
-    // 2) percent дошёл до его порога
     let s = 1;
     for (let i = 2; i <= desiredMaxStep; i++) {
       const minP = STEP_MIN_PERCENT[i] ?? 0;
@@ -423,7 +500,6 @@ function createProgressEngine(emit) {
       percent = Math.min(percent, target);
     }
 
-    // ✅ Шаги загораются только когда % дошёл до порога
     shownStep = computeShownStep(percent);
     shownLabel = stepLabels[shownStep] || shownLabel;
 
@@ -453,14 +529,10 @@ function createProgressEngine(emit) {
 
     setStep(nextStep, nextLabel, nextCap) {
       const s = Math.max(1, Math.min(4, Number(nextStep) || 1));
-
-      // ✅ не перезаписываем “текущий”, а увеличиваем максимум
       desiredMaxStep = Math.max(desiredMaxStep, s);
 
-      // запоминаем подпись для конкретного шага
       if (nextLabel) stepLabels[s] = nextLabel;
 
-      // ✅ cap не должен быть ниже порога шага, иначе он не включится
       const minCap = STEP_MIN_PERCENT[s] ?? 0;
 
       if (Number.isFinite(nextCap)) cap = Math.max(cap, nextCap, minCap);
@@ -470,7 +542,6 @@ function createProgressEngine(emit) {
     finishTo100(onDone) {
       this.stop();
 
-      // ✅ финал: логически доступен шаг 4, но он загорится только после 94%
       desiredMaxStep = Math.max(desiredMaxStep, 4);
       stepLabels[4] = "Готово";
 
@@ -502,5 +573,3 @@ function createProgressEngine(emit) {
     },
   };
 }
-
-
