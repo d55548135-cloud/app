@@ -25,6 +25,7 @@ const store = new Store({
   donutActive: false,
   donutCheckedAt: null,
   permissionGate: null,
+  introState: "default", // default | auth_denied
 });
 
 let progressEngine = null;
@@ -88,6 +89,33 @@ export async function initApp() {
   }
 }
 
+function isUserTokenDeniedError(err) {
+  if (!err) return false;
+
+  const msg =
+    typeof err === "string"
+      ? err
+      : err?.message
+        ? err.message
+        : (() => {
+            try {
+              return JSON.stringify(err);
+            } catch {
+              return "";
+            }
+          })();
+
+  const s = String(msg).toLowerCase();
+
+  return (
+    s.includes("user denied") ||
+    s.includes("access denied") ||
+    s.includes('"error_code":4') ||
+    s.includes('"error_reason":"user denied"') ||
+    s.includes("client_error")
+  );
+}
+
 async function loadAuthorizedData() {
   const root = document.getElementById("app");
   root?.setAttribute("aria-busy", "true");
@@ -121,10 +149,26 @@ async function loadAuthorizedData() {
       refreshing: false,
       progress: { step: 0, label: "", percent: 0 },
       permissionGate: null,
+      introState: "default",
     });
 
     root?.setAttribute("aria-busy", "false");
   } catch (e) {
+    const denied = isUserTokenDeniedError(e);
+
+    if (denied) {
+      store.setState({
+        phase: "intro",
+        busy: false,
+        refreshing: false,
+        error: null,
+        introState: "auth_denied",
+      });
+
+      root?.setAttribute("aria-busy", "false");
+      return;
+    }
+
     log("loadAuthorizedData error", e);
     store.setState({
       phase: "error",
@@ -134,6 +178,7 @@ async function loadAuthorizedData() {
       ),
       busy: false,
       refreshing: false,
+      introState: "default",
     });
     root?.setAttribute("aria-busy", "false");
   }
@@ -164,6 +209,8 @@ const actions = {
   continueFromIntro: async () => {
     const state = store.getState();
     if (state.busy || state.refreshing) return;
+
+    store.setState({ introState: "default" });
     await loadAuthorizedData();
   },
 

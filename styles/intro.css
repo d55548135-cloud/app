@@ -380,3 +380,14 @@
     transform: translateY(-20px) scale(0.96);
   }
 }
+
+
+.intro__saved--warning {
+  background: linear-gradient(180deg, rgba(255, 176, 92, 0.08) 0%, rgba(255, 176, 92, 0.04) 100%);
+  border-color: rgba(255, 176, 92, 0.14);
+  color: #ffd7a6;
+}
+
+.intro__saved--warning::before {
+  background: linear-gradient(180deg, #ffb05c 0%, #ff8a5b 100%);
+}

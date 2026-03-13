@@ -195,42 +195,61 @@ export function GroupCard({ group, isConnected, isBusy, donutActive }) {
   return card;
 }
 
-export function IntroState({ hasSavedConnections = false }) {
+export function IntroState({ hasSavedConnections = false, introState = "default" }) {
   const wrap = el("div", "intro");
 
   const shell = el("div", "intro__shell");
-
   const visual = el("div", "intro__visual");
   visual.appendChild(buildIntroIllustration());
 
   const content = el("div", "intro__content");
 
+  const denied = introState === "auth_denied";
+
   const title = el("div", "intro__title", {
-    text: "Подключите сообщество к HubBot",
+    text: denied
+      ? "Без доступа нельзя продолжить"
+      : "Подключите HubBot к вашему сообществу",
   });
 
   const text = el("div", "intro__text", {
-    text:
-      "HubBot Control покажет сообщества, доступные для подключения, и отметит уже сохранённые. На этом шаге мы ничего не изменяем в настройках сообщества. " +
-      "Доступ к VK будет запрошен только после вашего выбора и подтверждения.",
+    text: denied
+      ? "Вы запретили доступ к аккаунту VK. Без него HubBot не сможет показать ваши сообщества, проверить статус подключения и продолжить настройку."
+      : "HubBot автоматически настроит сообщения сообщества, возможности ботов и стабильную связь. Сначала покажем, что будет происходить, а доступы запросим только на следующем шаге.",
   });
 
   const points = el("div", "intro__points");
-  points.appendChild(pointRow("Покажем сообщества, которыми вы можете управлять"));
-  points.appendChild(pointRow("Отметим уже подключённые сообщества"));
-  points.appendChild(pointRow("После выбора отдельно запросим доступ через VK"));
+
+  if (denied) {
+    points.appendChild(pointRow("Покажем только сообщества, которыми вы управляете"));
+    points.appendChild(pointRow("Проверим доступность подключения и статус подписки"));
+    points.appendChild(pointRow("Запросим только необходимые права VK"));
+  } else {
+    points.appendChild(pointRow("Покажем ваши сообщества, которыми вы управляете"));
+    points.appendChild(pointRow("После выбора сообщества отдельно попросим доступ VK"));
+    points.appendChild(pointRow("Настройка займёт около 15 секунд"));
+  }
 
   content.appendChild(title);
   content.appendChild(text);
   content.appendChild(points);
 
-  if (hasSavedConnections) {
+  if (hasSavedConnections && !denied) {
     const saved = el("div", "intro__saved");
     const savedText = el("div", "intro__savedText", {
-      text: "Ранее подключённые сообщества будут загружены автоматически.",
+      text: "Ранее подключённые сообщества уже сохранены и подтянутся после продолжения.",
     });
     saved.appendChild(savedText);
     content.appendChild(saved);
+  }
+
+  if (denied) {
+    const note = el("div", "intro__saved intro__saved--warning");
+    const noteText = el("div", "intro__savedText", {
+      text: "Нажмите «Разрешить доступ», чтобы снова открыть системный запрос VK.",
+    });
+    note.appendChild(noteText);
+    content.appendChild(note);
   }
 
   shell.appendChild(visual);
