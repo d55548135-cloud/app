@@ -3,7 +3,7 @@ html, body{ height:100%; }
 body{
   margin:0;
   font-family: -apple-system, system-ui, "SF Pro Display", Roboto, Arial, sans-serif;
-  background: var(--bg);
+  background: #0E1116;
   color: var(--text);
 }
 
