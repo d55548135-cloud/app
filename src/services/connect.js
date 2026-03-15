@@ -20,33 +20,39 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
   try {
     onProgress?.(1, `Ожидаю подтверждение доступа к «${groupName}»`, 39);
 
-    let token;
-    try {
-      token = await vkGetCommunityToken({
+    const token = await withPermissionNormalization(() =>
+      vkGetCommunityToken({
         appId: CONFIG.APP_ID,
         groupId,
         scope: CONFIG.COMMUNITY_SCOPE,
-      });
-    } catch (e) {
-      if (isPermissionDeniedError(e)) {
-        const err = new Error(CONNECT_ERRORS.PERMISSION_DENIED);
-        err.code = CONNECT_ERRORS.PERMISSION_DENIED;
-        throw err;
-      }
-      throw e;
-    }
+      })
+    );
 
     await sleep(180);
 
     onProgress?.(2, "Настраиваю чат-бота в сообществе", 60);
     await sleep(250);
-    await vkGroupsSetSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
+
+    await withPermissionNormalization(() =>
+      vkGroupsSetSettings({
+        groupId,
+        token,
+        v: CONFIG.VK_API_VERSION,
+      })
+    );
 
     await sleep(220);
 
     onProgress?.(3, "Включаю стабильную связь для сообщений", 94);
     await sleep(250);
-    await vkGroupsSetLongPollSettings({ groupId, token, v: CONFIG.VK_API_VERSION });
+
+    await withPermissionNormalization(() =>
+      vkGroupsSetLongPollSettings({
+        groupId,
+        token,
+        v: CONFIG.VK_API_VERSION,
+      })
+    );
 
     await sleep(180);
 
@@ -61,13 +67,45 @@ export async function connectFlow({ groupId, groupName, onProgress }) {
   }
 }
 
+async function withPermissionNormalization(fn) {
+  try {
+    return await fn();
+  } catch (e) {
+    if (isPermissionDeniedError(e)) {
+      const err = new Error(CONNECT_ERRORS.PERMISSION_DENIED);
+      err.code = CONNECT_ERRORS.PERMISSION_DENIED;
+      err.cause = e;
+      throw err;
+    }
+    throw e;
+  }
+}
+
 function isPermissionDeniedError(e) {
-  const msg = String(e?.message || "").toLowerCase();
+  const raw =
+    typeof e === "string"
+      ? e
+      : e?.message ||
+        e?.error_description ||
+        e?.error_data?.error_reason ||
+        e?.error_data?.error_message ||
+        (() => {
+          try {
+            return JSON.stringify(e);
+          } catch {
+            return "";
+          }
+        })();
+
+  const msg = String(raw).toLowerCase();
+
   return (
     msg.includes("access denied") ||
     msg.includes("permission denied") ||
     msg.includes("cancel") ||
+    msg.includes("cancelled") ||
     msg.includes("denied") ||
+    msg.includes("user denied") ||
     msg.includes("отмен") ||
     msg.includes("доступ не предоставлен")
   );
