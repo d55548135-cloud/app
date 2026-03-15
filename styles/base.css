@@ -3,14 +3,14 @@ html, body{ height:100%; }
 body{
   margin:0;
   font-family: -apple-system, system-ui, "SF Pro Display", Roboto, Arial, sans-serif;
-  background: var(--bg);
+  background: var(--bg) !important;
   color: var(--text);
 }
 
 html,
 body,
 #root {
-  background: var(--bg);
+  background: var(--bg) !important;
 }
 
 button, input{
