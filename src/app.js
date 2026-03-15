@@ -433,18 +433,31 @@ const actions = {
           busy: false,
           error: null,
           progress: { step: 0, label: "", percent: 0 },
-          permissionGate: {
-            type: "community_denied",
-            groupId,
-            groupName: group.name,
-            title: "Подключение отменено",
-            text:
-              `Вы не предоставили доступ к настройкам сообщества «${group.name}». ` +
-              "Без этого HubBot не сможет завершить подключение. Попробуйте ещё раз, когда будете готовы.",
-          },
+          permissionGate: null,
         });
 
-        window.__hubbot_toast?.("Подключение отменено", "info");
+        window.__hubbot_modal_open?.({
+          title: "Нужен доступ к сообществу",
+          subtitle:
+            `Чтобы завершить подключение «${group.name}», нужно разрешить доступ к настройкам сообщества. ` +
+            "Без этого HubBot не сможет включить сообщения, возможности чат-ботов и стабильную связь.",
+          actions: [
+            {
+              id: "retry_connect",
+              label: "Попробовать ещё раз",
+              type: "primary",
+              onClick: () => actions.startConnect(groupId),
+            },
+            {
+              id: "cancel",
+              label: "Пока не подключать",
+              type: "secondary",
+              onClick: () => {},
+            },
+          ],
+        });
+
+        window.__hubbot_toast?.("Подключение не завершено", "info");
         return;
       }
 
