@@ -1,16 +1,21 @@
 *{ box-sizing: border-box; }
-html, body{ height:100%; }
-body{
-  margin:0;
-  font-family: -apple-system, system-ui, "SF Pro Display", Roboto, Arial, sans-serif;
-  background: var(--bg) !important;
-  color: var(--text);
+
+html, body{
+  height: 100%;
 }
 
 html,
 body,
-#root {
+#app,
+#app-view,
+.app-root{
   background: var(--bg) !important;
+  color: var(--text);
+}
+
+body{
+  margin: 0;
+  font-family: -apple-system, system-ui, "SF Pro Display", Roboto, Arial, sans-serif;
 }
 
 button, input{
