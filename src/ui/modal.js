@@ -40,19 +40,40 @@ export function mountModal(root) {
   overlay.style.display = "none";
   root.appendChild(overlay);
 
-  const close = () => {
-    overlay.classList.remove("is-open");
-    setTimeout(() => {
-      overlay.style.display = "none";
-      sheet.classList.remove("modal-sheet--success");
-      sheet.classList.remove("is-body-empty");
-      clear(body);
-      clear(footer);
-      footer.classList.add("is-empty");
-    }, 170);
-  };
+  let closeTimer = null;
 
-  closeBtn.addEventListener("click", close);
+  function cleanup() {
+    overlay.style.display = "none";
+    sheet.classList.remove("modal-sheet--success");
+    sheet.classList.remove("is-body-empty");
+    clear(body);
+    clear(footer);
+    footer.classList.add("is-empty");
+  }
+
+  function close({ immediate = false, afterClose } = {}) {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+
+    overlay.classList.remove("is-open");
+
+    if (immediate) {
+      cleanup();
+      afterClose?.();
+      return;
+    }
+
+    closeTimer = setTimeout(() => {
+      cleanup();
+      closeTimer = null;
+      afterClose?.();
+    }, 170);
+  }
+
+  closeBtn.addEventListener("click", () => close());
+
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) close();
   });
@@ -74,8 +95,10 @@ export function mountModal(root) {
       });
 
       btn.addEventListener("click", () => {
-        a.onClick?.();
-        close();
+        close({
+          immediate: true,
+          afterClose: () => a.onClick?.(),
+        });
       });
 
       footer.appendChild(btn);
@@ -83,6 +106,11 @@ export function mountModal(root) {
   }
 
   function open({ variant = "base", title, subtitle, contentNode, actions = [] }) {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+
     titleEl.textContent = title || "";
     subtitleEl.textContent = subtitle || "";
 
@@ -91,7 +119,6 @@ export function mountModal(root) {
     if (variant === "success") sheet.classList.add("modal-sheet--success");
     else sheet.classList.remove("modal-sheet--success");
 
-    // ✅ если контента нет — прячем body полностью
     if (contentNode) {
       body.appendChild(contentNode);
       sheet.classList.remove("is-body-empty");
