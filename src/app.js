@@ -447,13 +447,7 @@ const actions = {
               label: "Попробовать ещё раз",
               type: "primary",
               onClick: () => actions.startConnect(groupId),
-            },
-            {
-              id: "cancel",
-              label: "Пока не подключать",
-              type: "secondary",
-              onClick: () => {},
-            },
+            }
           ],
         });
 
