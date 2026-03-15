@@ -22,7 +22,7 @@ const store = new Store({
   error: null,
   busy: false,
   refreshing: false,
-  donutActive: false,
+  donutActive: null,
   donutCheckedAt: null,
   permissionGate: null,
   introState: "default", // default | auth_denied
@@ -317,11 +317,11 @@ const actions = {
     window.__hubbot_modal_open?.({
       title: `Подключить «${group.name}»?`,
       subtitle:
-        "Сейчас VK запросит доступ к настройкам выбранного сообщества. Это нужно, чтобы включить сообщения, возможности ботов и стабильную связь для новых сообщений.",
+        "Сейчас VK запросит доступ к настройкам выбранного сообщества. Это нужно, чтобы включить сообщения, возможности чат-ботов и стабильную связь для новых сообщений.",
       actions: [
         {
           id: "connect",
-          label: "Продолжить подключение",
+          label: "Продолжить",
           type: "primary",
           onClick: () => actions.startConnect(groupId),
         },

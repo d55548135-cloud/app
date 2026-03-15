@@ -27,7 +27,7 @@ export function Header({ phase, progress, donutActive = false }) {
   top.appendChild(subtitle);
 
   const chip = SubscriptionChip({
-    active: phase === "ready" ? !!donutActive : null,
+    active: typeof donutActive === "boolean" ? donutActive : null,
   });
 
   topRow.appendChild(top);
