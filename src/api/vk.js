@@ -2,9 +2,6 @@ import { CONFIG } from "../config.js";
 import { withTimeout, retry } from "../utils/async.js";
 import { log } from "../utils/logger.js";
 
-/**
- * Инициализация Mini App
- */
 export async function vkInit() {
   await bridgeSend("VKWebAppInit", undefined, {
     timeout: CONFIG.TIMEOUT.BRIDGE,
@@ -12,11 +9,6 @@ export async function vkInit() {
   });
 }
 
-/**
- * Получение user token.
- * ВАЖНО: без retry, чтобы после отказа пользователя
- * не открывалось второе системное окно.
- */
 export async function vkGetUserToken(appId, scope) {
   try {
     const res = await bridgeSend(
@@ -34,17 +26,10 @@ export async function vkGetUserToken(appId, scope) {
 
     return res.access_token;
   } catch (e) {
-    throw normalizeBridgeError(e, {
-      fallback: "Не удалось получить токен пользователя.",
-    });
+    throw normalizeBridgeAuthError(e, "Не удалось получить токен пользователя.");
   }
 }
 
-/**
- * Получение community token.
- * Тоже без retry: отказ пользователя не должен вызывать
- * повторное системное окно.
- */
 export async function vkGetCommunityToken({ appId, groupId, scope }) {
   try {
     const res = await bridgeSend(
@@ -66,15 +51,10 @@ export async function vkGetCommunityToken({ appId, groupId, scope }) {
 
     return res.access_token;
   } catch (e) {
-    throw normalizeBridgeError(e, {
-      fallback: "Не удалось получить токен сообщества.",
-    });
+    throw normalizeBridgeAuthError(e, "Не удалось получить токен сообщества.");
   }
 }
 
-/**
- * Установка приложения в сообщество
- */
 export async function vkAddToCommunity(groupId) {
   try {
     const res = await bridgeSend(
@@ -93,17 +73,10 @@ export async function vkAddToCommunity(groupId) {
 
     return newGroupId;
   } catch (e) {
-    throw normalizeBridgeError(e, {
-      fallback: "Не удалось установить приложение в сообщество.",
-    });
+    throw normalizeBridgeCommonError(e, "Не удалось установить приложение в сообщество.");
   }
 }
 
-/**
- * Универсальный вызов VK API.
- * Здесь retry допустим, потому что это уже не системное окно прав,
- * а обычный API-запрос.
- */
 export async function vkCall(method, params = {}) {
   const payload = {
     method,
@@ -122,8 +95,8 @@ export async function vkCall(method, params = {}) {
     if (res?.error) {
       log("VK API error", { method, error: res.error });
 
-      const msg = res.error?.error_msg || "ошибка";
-      const err = new Error(`VK API: ${method} — ${msg}`);
+      const errorMsg = res.error?.error_msg || "ошибка";
+      const err = new Error(`VK API: ${method} — ${errorMsg}`);
       err.code = res.error?.error_code;
       err.vkError = res.error;
       throw err;
@@ -142,9 +115,6 @@ export async function vkCall(method, params = {}) {
   }
 }
 
-/**
- * Получить список сообществ, где пользователь администратор
- */
 export async function vkGroupsGetAdmin(userToken, v = CONFIG.VK_API_VERSION) {
   const resp = await vkCall("groups.get", {
     filter: "admin",
@@ -163,9 +133,6 @@ export async function vkGroupsGetAdmin(userToken, v = CONFIG.VK_API_VERSION) {
   }));
 }
 
-/**
- * Включить сообщения и возможности ботов
- */
 export async function vkGroupsSetSettings({ groupId, token, v = CONFIG.VK_API_VERSION }) {
   return vkCall("groups.setSettings", {
     group_id: groupId,
@@ -176,14 +143,7 @@ export async function vkGroupsSetSettings({ groupId, token, v = CONFIG.VK_API_VE
   });
 }
 
-/**
- * Включить Long Poll и нужные события
- */
-export async function vkGroupsSetLongPollSettings({
-  groupId,
-  token,
-  v = CONFIG.VK_API_VERSION,
-}) {
+export async function vkGroupsSetLongPollSettings({ groupId, token, v = CONFIG.VK_API_VERSION }) {
   return vkCall("groups.setLongPollSettings", {
     group_id: groupId,
     enabled: 1,
@@ -196,9 +156,7 @@ export async function vkGroupsSetLongPollSettings({
   });
 }
 
-/* ---------------------------------- */
-/* Helpers                            */
-/* ---------------------------------- */
+/* helpers */
 
 async function bridgeSend(method, params, { timeout, timeoutMessage } = {}) {
   return withTimeout(
@@ -208,23 +166,35 @@ async function bridgeSend(method, params, { timeout, timeoutMessage } = {}) {
   );
 }
 
-function normalizeBridgeError(err, { fallback = "Ошибка VK Bridge." } = {}) {
+function normalizeBridgeAuthError(err, fallback) {
   if (!err) return new Error(fallback);
 
-  if (isBridgeAccessDeniedError(err)) {
-    const e = new Error("ACCESS_DENIED");
+  const raw = extractErrorMessage(err);
+  const s = raw.toLowerCase();
+
+  if (isAccessDeniedString(s)) {
+    const e = new Error("Access denied");
     e.code = "ACCESS_DENIED";
     e.original = err;
     return e;
   }
 
-  if (isBridgeCancelError(err)) {
-    const e = new Error("CANCELLED");
-    e.code = "CANCELLED";
+  if (isCancelString(s)) {
+    const e = new Error("User denied");
+    e.code = "ACCESS_DENIED";
     e.original = err;
     return e;
   }
 
+  if (err instanceof Error) return err;
+
+  const e = new Error(raw || fallback);
+  e.original = err;
+  return e;
+}
+
+function normalizeBridgeCommonError(err, fallback) {
+  if (!err) return new Error(fallback);
   if (err instanceof Error) return err;
 
   const e = new Error(extractErrorMessage(err) || fallback);
@@ -249,28 +219,25 @@ function normalizeVkApiError(err, method) {
   return e;
 }
 
-function isBridgeAccessDeniedError(err) {
-  const s = extractErrorMessage(err).toLowerCase();
-
+function isAccessDeniedString(s) {
   return (
     s.includes("access denied") ||
     s.includes("permission denied") ||
     s.includes("user denied") ||
+    s.includes('"error_code":4') ||
     s.includes('"error_reason":"user denied"') ||
-    s.includes('"error_code":4')
+    s.includes("client_error")
   );
 }
 
-function isBridgeCancelError(err) {
-  const s = extractErrorMessage(err).toLowerCase();
-
+function isCancelString(s) {
   return (
     s.includes("cancel") ||
     s.includes("cancelled") ||
     s.includes("canceled") ||
     s.includes("отмен") ||
-    s.includes("close") ||
-    s.includes("closed")
+    s.includes("closed") ||
+    s.includes("close")
   );
 }
 
@@ -278,7 +245,6 @@ function extractErrorMessage(err) {
   if (!err) return "";
 
   if (typeof err === "string") return err;
-
   if (typeof err?.message === "string" && err.message) return err.message;
   if (typeof err?.error_description === "string" && err.error_description) return err.error_description;
   if (typeof err?.error_data?.error_reason === "string" && err.error_data.error_reason) {
@@ -286,9 +252,6 @@ function extractErrorMessage(err) {
   }
   if (typeof err?.error_data?.error_message === "string" && err.error_data.error_message) {
     return err.error_data.error_message;
-  }
-  if (typeof err?.error?.error_msg === "string" && err.error.error_msg) {
-    return err.error.error_msg;
   }
 
   try {
