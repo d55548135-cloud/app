@@ -437,8 +437,14 @@ const actions = {
             type: "community_denied",
             groupId,
             groupName: group.name,
+            title: "Подключение отменено",
+            text:
+              `Вы не предоставили доступ к настройкам сообщества «${group.name}». ` +
+              "Без этого HubBot не сможет завершить подключение. Попробуйте ещё раз, когда будете готовы.",
           },
         });
+
+        window.__hubbot_toast?.("Подключение отменено", "info");
         return;
       }
 

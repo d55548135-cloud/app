@@ -292,7 +292,7 @@ function checkMini() {
 }
 
 export function PermissionDeniedState({ title, text }) {
-  const wrap = el("div", "empty empty--error");
+  const wrap = el("div", "empty empty--notice");
   const ico = el("div", "empty__icon");
   ico.appendChild(Icon("warning", "icon icon--warning"));
   wrap.appendChild(ico);
