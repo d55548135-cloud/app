@@ -151,6 +151,10 @@ export async function vkGroupsSetLongPollSettings({ groupId, token, v = CONFIG.V
     message_new: 1,
     message_allow: 1,
     message_deny: 1,
+    message_event: 1,
+    message_reply: 1,
+    message_edit: 1,
+    message_typing_state: 1,
     access_token: token,
     v,
   });
